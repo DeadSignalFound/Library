@@ -4,12 +4,18 @@ local event = game:GetService("ReplicatedStorage").RemoteFunction
 local Mouse = game.Players.LocalPlayer:GetMouse()
 local RunService = game:GetService("RunService")
 
-local troops = {}
-for i,v in next, game:GetService("ReplicatedStorage").RemoteFunction:InvokeServer("Session", "Search", "Inventory.Troops") do
-    if v.Equipped then
-        table.insert(troops, i)
+local function fetchTroops()
+    local t = {}
+    for i,v in next, game:GetService("ReplicatedStorage").RemoteFunction:InvokeServer("Session", "Search", "Inventory.Troops") do
+        if v.Equipped then
+            table.insert(t, i)
+        end
     end
+    table.insert(t, "") -- Dummy item to fix dropdown bug
+    return t
 end
+
+local troops = fetchTroops()
 local upgradeTroop = troops[1]
 
 local function getOwnerId(tower)
@@ -78,12 +84,21 @@ tab:slider({
     end
 })
 
-tab:dropdown({
+local SetTowerDropdown = tab:dropdown({
     Name = "Set Tower",
     StartingText = upgradeTroop or "Select Tower",
     Items = troops,
     Callback = function(v)
         upgradeTroop = v
+    end
+})
+
+tab:button({
+    Name = "Refresh Towers",
+    Callback = function()
+        troops = fetchTroops()
+        SetTowerDropdown:Clear()
+        SetTowerDropdown:AddItems(troops)
     end
 })
 
