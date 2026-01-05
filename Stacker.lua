@@ -97,6 +97,7 @@ tab:button({
     Callback = function()
         troops = fetchTroops()
         SetTowerDropdown:Clear()
+        task.wait(0.5) -- Wait for Clear tween/callback to finish
         SetTowerDropdown:AddItems(troops)
     end
 })
