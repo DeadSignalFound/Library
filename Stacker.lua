@@ -139,6 +139,18 @@ tab:button({
     end
 })
 
+tab:button({
+    Name = "Sell All Farms",
+    Callback = function()
+        for i,v in pairs(game.Workspace.Towers:GetChildren()) do
+            if getOwnerId(v) == game.Players.LocalPlayer.UserId and getTowerType(v) == "Farm" then
+                event:InvokeServer("Troops","Sell",{["Troop"] = v})
+                wait()
+            end
+        end
+    end
+})
+
 RunService.RenderStepped:Connect(function()
     if stackMode then
         if not stackSphere then
@@ -210,12 +222,8 @@ end
 
 -- Toggle UI with Left Control
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if UserInputService:GetFocusedTextBox() then return end
-    
+    if gameProcessed then return end
     if input.KeyCode == Enum.KeyCode.LeftControl then
-        if Library.Toggled == nil then
-            Library.Toggled = true
-        end
         Library:show(not Library.Toggled)
     end
 end)
