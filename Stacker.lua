@@ -210,8 +210,12 @@ end
 
 -- Toggle UI with Left Control
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if gameProcessed then return end
+    if UserInputService:GetFocusedTextBox() then return end
+    
     if input.KeyCode == Enum.KeyCode.LeftControl then
+        if Library.Toggled == nil then
+            Library.Toggled = true
+        end
         Library:show(not Library.Toggled)
     end
 end)
