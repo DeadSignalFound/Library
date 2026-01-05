@@ -207,3 +207,11 @@ if UserInputService.TouchEnabled and not UserInputService.MouseEnabled then
         Library:show(not Library.Toggled)
     end)
 end
+
+-- Toggle UI with Left Control
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.KeyCode == Enum.KeyCode.LeftControl then
+        Library:show(not Library.Toggled)
+    end
+end)
