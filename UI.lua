@@ -1,1655 +1,2571 @@
-if (game:GetService("CoreGui")):FindFirstChild("ADS") and (game:GetService("CoreGui")):FindFirstChild("ScreenGui") then
-	(game:GetService("CoreGui")).ADS:Destroy();
-	(game:GetService("CoreGui")).ScreenGui:Destroy();
-end;
-_G.Primary = Color3.fromRGB(100, 100, 100); -- secondary lighter color
-_G.Dark = Color3.fromRGB(22, 22, 26); -- main dark color
-_G.Third = Color3.fromRGB(2, 145, 71); -- accent color
-function CreateRounded(Parent, Size)
-	local Rounded = Instance.new("UICorner");
-	Rounded.Name = "Rounded";
-	Rounded.Parent = Parent;
-	Rounded.CornerRadius = UDim.new(0, Size);
-end;
-local UserInputService = game:GetService("UserInputService");
-local TweenService = game:GetService("TweenService");
-function MakeDraggable(topbarobject, object)
-	local Dragging = nil;
-	local DragInput = nil;
-	local DragStart = nil;
-	local StartPosition = nil;
-	local function Update(input)
-		local Delta = input.Position - DragStart;
-		local pos = UDim2.new(StartPosition.X.Scale, StartPosition.X.Offset + Delta.X, StartPosition.Y.Scale, StartPosition.Y.Offset + Delta.Y);
-		local Tween = TweenService:Create(object, TweenInfo.new(0.15), {
-			Position = pos
-		});
-		Tween:Play();
-	end;
-	topbarobject.InputBegan:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-			Dragging = true;
-			DragStart = input.Position;
-			StartPosition = object.Position;
-			input.Changed:Connect(function()
-				if input.UserInputState == Enum.UserInputState.End then
-					Dragging = false;
-				end;
-			end);
-		end;
-	end);
-	topbarobject.InputChanged:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-			DragInput = input;
-		end;
-	end);
-	UserInputService.InputChanged:Connect(function(input)
-		if input == DragInput and Dragging then
-			Update(input);
-		end;
-	end);
-end;
-local ScreenGui = Instance.new("ScreenGui");
-ScreenGui.Parent = game.CoreGui;
-ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling;
-local OutlineButton = Instance.new("Frame");
-OutlineButton.Name = "OutlineButton";
-OutlineButton.Parent = ScreenGui;
-OutlineButton.ClipsDescendants = true;
-OutlineButton.BackgroundColor3 = _G.Dark;
-OutlineButton.BackgroundTransparency = 0;
-OutlineButton.Position = UDim2.new(0, 10, 0, 10);
-OutlineButton.Size = UDim2.new(0, 50, 0, 50);
-CreateRounded(OutlineButton, 12);
-local ImageButton = Instance.new("ImageButton");
-ImageButton.Parent = OutlineButton;
-ImageButton.Position = UDim2.new(0.5, 0, 0.5, 0);
-ImageButton.Size = UDim2.new(0, 40, 0, 40);
-ImageButton.AnchorPoint = Vector2.new(0.5, 0.5);
-ImageButton.BackgroundColor3 = _G.Dark;
-ImageButton.ImageColor3 = Color3.fromRGB(250, 250, 250);
-ImageButton.ImageTransparency = 0;
-ImageButton.BackgroundTransparency = 0;
-ImageButton.Image = "rbxassetid://105059922903197";
-ImageButton.AutoButtonColor = false;
-MakeDraggable(ImageButton, OutlineButton);
-CreateRounded(ImageButton, 10);
-ImageButton.MouseButton1Click:connect(function()
-	(game.CoreGui:FindFirstChild("ADS")).Enabled = not (game.CoreGui:FindFirstChild("ADS")).Enabled;
-end);
-local NotificationFrame = Instance.new("ScreenGui");
-NotificationFrame.Name = "NotificationFrame";
-NotificationFrame.Parent = game.CoreGui;
-NotificationFrame.ZIndexBehavior = Enum.ZIndexBehavior.Global;
-local NotificationList = {};
-local function RemoveOldestNotification()
-	if #NotificationList > 0 then
-		local removed = table.remove(NotificationList, 1);
-		removed[1]:TweenPosition(UDim2.new(0.5, 0, -0.2, 0), "Out", "Quad", 0.4, true, function()
-			removed[1]:Destroy();
-		end);
-	end;
-end;
-spawn(function()
-	while wait() do
-		if #NotificationList > 0 then
-			wait(2);
-			RemoveOldestNotification();
-		end;
-	end;
-end);
-local Update = {};
-function Update:Notify(desc)
-	pcall(function()
-		local Frame = Instance.new("Frame");
-		local Image = Instance.new("ImageLabel");
-		local Title = Instance.new("TextLabel");
-		local Desc = Instance.new("TextLabel");
-		local OutlineFrame = Instance.new("Frame");
-		OutlineFrame.Name = "OutlineFrame";
-		OutlineFrame.Parent = NotificationFrame;
-		OutlineFrame.ClipsDescendants = true;
-		OutlineFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30);
-		OutlineFrame.AnchorPoint = Vector2.new(0.5, 1);
-		OutlineFrame.BackgroundTransparency = 0.4;
-		OutlineFrame.Position = UDim2.new(0.5, 0, -0.2, 0);
-		OutlineFrame.Size = UDim2.new(0, 412, 0, 72);
-		Frame.Name = "Frame";
-		Frame.Parent = OutlineFrame;
-		Frame.ClipsDescendants = true;
-		Frame.AnchorPoint = Vector2.new(0.5, 0.5);
-		Frame.BackgroundColor3 = _G.Dark;
-		Frame.BackgroundTransparency = 0.1;
-		Frame.Position = UDim2.new(0.5, 0, 0.5, 0);
-		Frame.Size = UDim2.new(0, 400, 0, 60);
-		Image.Name = "Icon";
-		Image.Parent = Frame;
-		Image.BackgroundColor3 = Color3.fromRGB(255, 255, 255);
-		Image.BackgroundTransparency = 1;
-		Image.Position = UDim2.new(0, 8, 0, 8);
-		Image.Size = UDim2.new(0, 45, 0, 45);
-		Image.Image = "rbxassetid://105059922903197";
-		Title.Parent = Frame;
-		Title.BackgroundColor3 = _G.Primary;
-		Title.BackgroundTransparency = 1;
-		Title.Position = UDim2.new(0, 55, 0, 14);
-		Title.Size = UDim2.new(0, 10, 0, 20);
-		Title.Font = Enum.Font.GothamBold;
-		Title.Text = "ADS";
-		Title.TextColor3 = Color3.fromRGB(255, 255, 255);
-		Title.TextSize = 16;
-		Title.TextXAlignment = Enum.TextXAlignment.Left;
-		Desc.Parent = Frame;
-		Desc.BackgroundColor3 = _G.Primary;
-		Desc.BackgroundTransparency = 1;
-		Desc.Position = UDim2.new(0, 55, 0, 33);
-		Desc.Size = UDim2.new(0, 10, 0, 10);
-		Desc.Font = Enum.Font.GothamSemibold;
-		Desc.TextTransparency = 0.3;
-		Desc.Text = desc;
-		Desc.TextColor3 = Color3.fromRGB(200, 200, 200);
-		Desc.TextSize = 12;
-		Desc.TextXAlignment = Enum.TextXAlignment.Left;
-		CreateRounded(Frame, 10);
-		CreateRounded(OutlineFrame, 12);
-		OutlineFrame:TweenPosition(UDim2.new(0.5, 0, 0.1 + (#NotificationList) * 0.1, 0), "Out", "Quad", 0.4, true);
-		table.insert(NotificationList, {
-			OutlineFrame,
-			title
-		});
-	end);
-end;
-function Update:StartLoad()
-	local Loader = Instance.new("ScreenGui");
-	Loader.Parent = game.CoreGui;
-	Loader.ZIndexBehavior = Enum.ZIndexBehavior.Global;
-	Loader.DisplayOrder = 1000;
-	local LoaderFrame = Instance.new("Frame");
-	LoaderFrame.Name = "LoaderFrame";
-	LoaderFrame.Parent = Loader;
-	LoaderFrame.ClipsDescendants = true;
-	LoaderFrame.BackgroundColor3 = Color3.fromRGB(5, 5, 5);
-	LoaderFrame.BackgroundTransparency = 0;
-	LoaderFrame.AnchorPoint = Vector2.new(0.5, 0.5);
-	LoaderFrame.Position = UDim2.new(0.5, 0, 0.5, 0);
-	LoaderFrame.Size = UDim2.new(1.5, 0, 1.5, 0);
-	LoaderFrame.BorderSizePixel = 0;
-	local MainLoaderFrame = Instance.new("Frame");
-	MainLoaderFrame.Name = "MainLoaderFrame";
-	MainLoaderFrame.Parent = LoaderFrame;
-	MainLoaderFrame.ClipsDescendants = true;
-	MainLoaderFrame.BackgroundColor3 = Color3.fromRGB(5, 5, 5);
-	MainLoaderFrame.BackgroundTransparency = 0;
-	MainLoaderFrame.AnchorPoint = Vector2.new(0.5, 0.5);
-	MainLoaderFrame.Position = UDim2.new(0.5, 0, 0.5, 0);
-	MainLoaderFrame.Size = UDim2.new(0.5, 0, 0.5, 0);
-	MainLoaderFrame.BorderSizePixel = 0;
-	local TitleLoader = Instance.new("TextLabel");
-	TitleLoader.Parent = MainLoaderFrame;
-	TitleLoader.Text = "ADS";
-	TitleLoader.Font = Enum.Font.FredokaOne;
-	TitleLoader.TextSize = 50;
-	TitleLoader.TextColor3 = Color3.fromRGB(255, 255, 255);
-	TitleLoader.BackgroundTransparency = 1;
-	TitleLoader.AnchorPoint = Vector2.new(0.5, 0.5);
-	TitleLoader.Position = UDim2.new(0.5, 0, 0.3, 0);
-	TitleLoader.Size = UDim2.new(0.8, 0, 0.2, 0);
-	TitleLoader.TextTransparency = 0;
-	local DescriptionLoader = Instance.new("TextLabel");
-	DescriptionLoader.Parent = MainLoaderFrame;
-	DescriptionLoader.Text = "Loading..";
-	DescriptionLoader.Font = Enum.Font.Gotham;
-	DescriptionLoader.TextSize = 15;
-	DescriptionLoader.TextColor3 = Color3.fromRGB(255, 255, 255);
-	DescriptionLoader.BackgroundTransparency = 1;
-	DescriptionLoader.AnchorPoint = Vector2.new(0.5, 0.5);
-	DescriptionLoader.Position = UDim2.new(0.5, 0, 0.6, 0);
-	DescriptionLoader.Size = UDim2.new(0.8, 0, 0.2, 0);
-	DescriptionLoader.TextTransparency = 0;
-	local LoadingBarBackground = Instance.new("Frame");
-	LoadingBarBackground.Parent = MainLoaderFrame;
-	LoadingBarBackground.BackgroundColor3 = Color3.fromRGB(50, 50, 50);
-	LoadingBarBackground.AnchorPoint = Vector2.new(0.5, 0.5);
-	LoadingBarBackground.Position = UDim2.new(0.5, 0, 0.7, 0);
-	LoadingBarBackground.Size = UDim2.new(0.7, 0, 0.05, 0);
-	LoadingBarBackground.ClipsDescendants = true;
-	LoadingBarBackground.BorderSizePixel = 0;
-	LoadingBarBackground.ZIndex = 2;
-	local LoadingBar = Instance.new("Frame");
-	LoadingBar.Parent = LoadingBarBackground;
-	LoadingBar.BackgroundColor3 = _G.Third;
-	LoadingBar.Size = UDim2.new(0, 0, 1, 0);
-	LoadingBar.ZIndex = 3;
-	CreateRounded(LoadingBarBackground, 20);
-	CreateRounded(LoadingBar, 20);
-	local tweenService = game:GetService("TweenService");
-	local dotCount = 0;
-	local running = true;
-	local barTweenInfoPart1 = TweenInfo.new(0.5, Enum.EasingStyle.Linear, Enum.EasingDirection.Out);
-	local barTweenPart1 = tweenService:Create(LoadingBar, barTweenInfoPart1, {
-		Size = UDim2.new(0.25, 0, 1, 0)
-	});
-	local barTweenInfoPart2 = TweenInfo.new(1, Enum.EasingStyle.Linear, Enum.EasingDirection.Out);
-	local barTweenPart2 = tweenService:Create(LoadingBar, barTweenInfoPart2, {
-		Size = UDim2.new(1, 0, 1, 0)
-	});
-	barTweenPart1:Play();
-	function Update:Loaded()
-		barTweenPart2:Play();
-	end;
-	barTweenPart1.Completed:Connect(function()
-		running = true;
-		barTweenPart2.Completed:Connect(function()
-			wait(1);
-			running = false;
-			DescriptionLoader.Text = "Loaded!";
-			wait(0.5);
-			Loader:Destroy();
-		end);
-	end);
-	spawn(function()
-		while running do
-			dotCount = (dotCount + 1) % 4;
-			local dots = string.rep(".", dotCount);
-			DescriptionLoader.Text = "Please wait" .. dots;
-			wait(0.5);
-		end;
-	end);
-end;
-local SettingsLib = {
-    SaveSettings = true,
-    LoadAnimation = false
-}
-(getgenv()).LoadConfig = function()
-    local path = "ADS/Library/" .. game.Players.LocalPlayer.Name .. ".json"
-    if readfile and isfile and isfolder then
-        if not isfolder("ADS") then makefolder("ADS") end
-        if not isfolder("ADS/Library") then makefolder("ADS/Library") end
+if not game:IsLoaded() then game.Loaded:Wait() end
 
-        if isfile(path) then
-            local data = readfile(path)
-            local success, decode = pcall(function() return game:GetService("HttpService"):JSONDecode(data) end)
-            
-            if success and type(decode) == "table" then
-                for i, v in pairs(decode) do
-                    SettingsLib[i] = v
-                end
+-- // services & main refs
+local user_input_service = game:GetService("UserInputService")
+local virtual_user = game:GetService("VirtualUser")
+local run_service = game:GetService("RunService")
+local teleport_service = game:GetService("TeleportService")
+local marketplace_service = game:GetService("MarketplaceService")
+local replicated_storage = game:GetService("ReplicatedStorage")
+local http_service = game:GetService("HttpService")
+local remote_func = replicated_storage:WaitForChild("RemoteFunction")
+local remote_event = replicated_storage:WaitForChild("RemoteEvent")
+local players_service = game:GetService("Players")
+local local_player = players_service.LocalPlayer or players_service.PlayerAdded:Wait()
+local mouse = local_player:GetMouse()
+local player_gui = local_player:WaitForChild("PlayerGui")
+local file_name = "ADS_Config.json"
+
+task.spawn(function()
+    local function disable_idled()
+        local success, connections = pcall(getconnections, local_player.Idled)
+        if success then
+            for _, v in pairs(connections) do
+                v:Disable()
             end
-        else
-            writefile(path, game:GetService("HttpService"):JSONEncode(SettingsLib))
         end
     end
-end
-(getgenv()).SaveConfig = function()
-    local path = "ADS/Library/" .. game.Players.LocalPlayer.Name .. ".json"
-    if writefile then
-        local data = game:GetService("HttpService"):JSONEncode(SettingsLib)
-        writefile(path, data)
+        
+    disable_idled()
+end)
+
+task.spawn(function()
+    local_player.Idled:Connect(function()
+        virtual_user:CaptureController()
+        virtual_user:ClickButton2(Vector2.new(0, 0))
+    end)
+end)
+
+task.spawn(function()
+    local core_gui = game:GetService("CoreGui")
+    local overlay = core_gui:WaitForChild("RobloxPromptGui"):WaitForChild("promptOverlay")
+
+    overlay.ChildAdded:Connect(function(child)
+        if child.Name == 'ErrorPrompt' then
+            while true do
+                teleport_service:Teleport(3260590327)
+                task.wait(5)
+            end
+        end
+    end)
+end)
+
+local function identify_game_state()
+    local players = game:GetService("Players")
+    local temp_player = players.LocalPlayer or players.PlayerAdded:Wait()
+    local temp_gui = temp_player:WaitForChild("PlayerGui")
+    
+    while true do
+        if temp_gui:FindFirstChild("LobbyGui") then
+            return "LOBBY"
+        elseif temp_gui:FindFirstChild("GameGui") then
+            return "GAME"
+        end
+        task.wait(1)
     end
 end
-getgenv().LoadConfig()
-function Update:Set(key, value)
-    SettingsLib[key] = value
-    getgenv().SaveConfig()
+
+local game_state = identify_game_state()
+
+local send_request = request or http_request or httprequest
+    or GetDevice and GetDevice().request
+
+if not send_request then 
+    warn("failure: no http function") 
+    return 
 end
-function Update:Get(key, default)
-    if SettingsLib[key] ~= nil then
-        return SettingsLib[key]
+
+local back_to_lobby_running = false
+local auto_pickups_running = false
+local auto_skip_running = false
+local auto_claim_rewards = false
+local anti_lag_running = false
+local auto_chain_running = false
+local auto_dj_running = false
+local auto_mercenary_base_running = false
+local auto_military_base_running = false
+local sell_farms_running = false
+
+local max_path_distance = 300 -- default
+local mil_marker = nil
+local merc_marker = nil
+
+_G.record_strat = false
+local spawned_towers = {}
+local current_equipped_towers = {"None"}
+local tower_count = 0
+
+local stack_enabled = false
+local selected_tower = nil
+local stack_sphere = nil
+
+local default_settings = {
+    PathVisuals = false,
+    MilitaryPath = false,
+    MercenaryPath = false,
+    AutoSkip = false,
+    AutoChain = false,
+    AutoDJ = false,
+    AutoRejoin = false,
+    SellFarms = false,
+    AutoMercenary = false,
+    AutoMilitary = false,
+    Frost = false,
+    Fallen = false,
+    Easy = false,
+    AntiLag = false,
+    AutoPickups = false,
+    ClaimRewards = false,
+    SendWebhook = false,
+    NoRecoil = false,
+    SellFarmsWave = 1,
+    WebhookURL = "",
+    Cooldown = 0.01,
+    Multiply = 60
+}
+
+local last_state = {}
+
+-- // icon item ids ill add more soon arghh
+local ItemNames = {
+    ["17447507910"] = "Timescale Ticket(s)",
+    ["17438486690"] = "Range Flag(s)",
+    ["17438486138"] = "Damage Flag(s)",
+    ["17438487774"] = "Cooldown Flag(s)",
+    ["17429537022"] = "Blizzard(s)",
+    ["17448596749"] = "Napalm Strike(s)",
+    ["18493073533"] = "Spin Ticket(s)",
+    ["17429548305"] = "Supply Drop(s)",
+    ["18443277308"] = "Low Grade Consumable Crate(s)",
+    ["136180382135048"] = "Santa Radio(s)",
+    ["18443277106"] = "Mid Grade Consumable Crate(s)",
+    ["18443277591"] = "High Grade Consumable Crate(s)",
+    ["132155797622156"] = "Christmas Tree(s)",
+    ["124065875200929"] = "Fruit Cake(s)",
+    ["17429541513"] = "Barricade(s)",
+    ["110415073436604"] = "Holy Hand Grenade(s)",
+    ["139414922355803"] = "Present Clusters(s)"
+}
+
+-- // tower management core
+TDS = {
+    placed_towers = {},
+    active_strat = true,
+    matchmaking_map = {
+        ["Hardcore"] = "hardcore",
+        ["Pizza Party"] = "halloween",
+        ["Badlands"] = "badlands",
+        ["Polluted"] = "polluted"
+    }
+}
+
+local upgrade_history = {}
+
+-- // shared for addons
+shared.TDS_Table = TDS
+
+-- // load & save
+local function save_settings()
+    local data_to_save = {}
+    for key, _ in pairs(default_settings) do
+        data_to_save[key] = _G[key]
     end
-    return default
+    writefile(file_name, http_service:JSONEncode(data_to_save))
 end
-function Update:LoadAnimation()
-	if SettingsLib.LoadAnimation then
-		return true;
-	end;
-	return false;
-end;
-function Update:Window(Config)
-	assert(Config.SubTitle, "v4");
-	local WindowConfig = {
-		Size = Config.Size,
-		TabWidth = Config.TabWidth
-	};
-	local osfunc = {};
-	local uihide = false;
-	local abc = false;
-	local currentpage = "";
-	local keybind = keybind or Enum.KeyCode.RightControl;
-	local yoo = string.gsub(tostring(keybind), "Enum.KeyCode.", "");
-	local ADS = Instance.new("ScreenGui");
-	ADS.Name = "ADS";
-	ADS.Parent = game.CoreGui;
-	ADS.DisplayOrder = 999;
-	local OutlineMain = Instance.new("Frame");
-	OutlineMain.Name = "OutlineMain";
-	OutlineMain.Parent = ADS;
-	OutlineMain.ClipsDescendants = true;
-	OutlineMain.AnchorPoint = Vector2.new(0.5, 0.5);
-	OutlineMain.BackgroundColor3 = Color3.fromRGB(30, 30, 30);
-	OutlineMain.BackgroundTransparency = 0.4;
-	OutlineMain.Position = UDim2.new(0.5, 0, 0.45, 0);
-	OutlineMain.Size = UDim2.new(0, 0, 0, 0);
-	CreateRounded(OutlineMain, 15);
-	local Main = Instance.new("Frame");
-	Main.Name = "Main";
-	Main.Parent = OutlineMain;
-	Main.ClipsDescendants = true;
-	Main.AnchorPoint = Vector2.new(0.5, 0.5);
-	Main.BackgroundColor3 = Color3.fromRGB(24, 24, 26);
-	Main.BackgroundTransparency = 0;
-	Main.Position = UDim2.new(0.5, 0, 0.5, 0);
-	Main.Size = WindowConfig.Size;
-	OutlineMain:TweenSize(UDim2.new(0, WindowConfig.Size.X.Offset + 15, 0, WindowConfig.Size.Y.Offset + 15), "Out", "Quad", 0.4, true);
-	CreateRounded(Main, 12);
-	local BtnStroke = Instance.new("UIStroke");
-	local DragButton = Instance.new("Frame");
-	DragButton.Name = "DragButton";
-	DragButton.Parent = Main;
-	DragButton.Position = UDim2.new(1, 5, 1, 5);
-	DragButton.AnchorPoint = Vector2.new(1, 1);
-	DragButton.Size = UDim2.new(0, 15, 0, 15);
-	DragButton.BackgroundColor3 = _G.Primary;
-	DragButton.BackgroundTransparency = 1;
-	DragButton.ZIndex = 10;
-	local mouse = game.Players.LocalPlayer:GetMouse();
-	local uis = game:GetService("UserInputService");
-	local CircleDragButton = Instance.new("UICorner");
-	CircleDragButton.Name = "CircleDragButton";
-	CircleDragButton.Parent = DragButton;
-	CircleDragButton.CornerRadius = UDim.new(0, 99);
-	local Top = Instance.new("Frame");
-	Top.Name = "Top";
-	Top.Parent = Main;
-	Top.BackgroundColor3 = Color3.fromRGB(10, 10, 10);
-	Top.Size = UDim2.new(1, 0, 0, 40);
-	Top.BackgroundTransparency = 1;
-	CreateRounded(Top, 5);
-	local NameHub = Instance.new("TextLabel");
-	NameHub.Name = "NameHub";
-	NameHub.Parent = Top;
-	NameHub.BackgroundColor3 = Color3.fromRGB(255, 255, 255);
-	NameHub.BackgroundTransparency = 1;
-	NameHub.RichText = true;
-	NameHub.Position = UDim2.new(0, 15, 0.5, 0);
-	NameHub.AnchorPoint = Vector2.new(0, 0.5);
-	NameHub.Size = UDim2.new(0, 1, 0, 25);
-	NameHub.Font = Enum.Font.GothamBold;
-	NameHub.Text = "ADS";
-	NameHub.TextSize = 20;
-	NameHub.TextColor3 = Color3.fromRGB(255, 255, 255);
-	NameHub.TextXAlignment = Enum.TextXAlignment.Left;
-	local nameHubSize = (game:GetService("TextService")):GetTextSize(NameHub.Text, NameHub.TextSize, NameHub.Font, Vector2.new(math.huge, math.huge));
-	NameHub.Size = UDim2.new(0, nameHubSize.X, 0, 25);
-	local SubTitle = Instance.new("TextLabel");
-	SubTitle.Name = "SubTitle";
-	SubTitle.Parent = NameHub;
-	SubTitle.BackgroundColor3 = Color3.fromRGB(255, 255, 255);
-	SubTitle.BackgroundTransparency = 1;
-	SubTitle.Position = UDim2.new(0, nameHubSize.X + 8, 0.5, 0);
-	SubTitle.Size = UDim2.new(0, 1, 0, 20);
-	SubTitle.Font = Enum.Font.Cartoon;
-	SubTitle.AnchorPoint = Vector2.new(0, 0.5);
-	SubTitle.Text = Config.SubTitle;
-	SubTitle.TextSize = 15;
-	SubTitle.TextColor3 = Color3.fromRGB(150, 150, 150);
-	local SubTitleSize = (game:GetService("TextService")):GetTextSize(SubTitle.Text, SubTitle.TextSize, SubTitle.Font, Vector2.new(math.huge, math.huge));
-	SubTitle.Size = UDim2.new(0, SubTitleSize.X, 0, 25);
-	local CloseButton = Instance.new("ImageButton");
-	CloseButton.Name = "CloseButton";
-	CloseButton.Parent = Top;
-	CloseButton.BackgroundColor3 = _G.Primary;
-	CloseButton.BackgroundTransparency = 1;
-	CloseButton.AnchorPoint = Vector2.new(1, 0.5);
-	CloseButton.Position = UDim2.new(1, -15, 0.5, 0);
-	CloseButton.Size = UDim2.new(0, 20, 0, 20);
-	CloseButton.Image = "rbxassetid://7743878857";
-	CloseButton.ImageTransparency = 0;
-	CloseButton.ImageColor3 = Color3.fromRGB(245, 245, 245);
-	CreateRounded(CloseButton, 3);
-	CloseButton.MouseButton1Click:connect(function()
-		(game.CoreGui:FindFirstChild("ADS")).Enabled = not (game.CoreGui:FindFirstChild("ADS")).Enabled;
-	end);
-	local ResizeButton = Instance.new("ImageButton");
-	ResizeButton.Name = "ResizeButton";
-	ResizeButton.Parent = Top;
-	ResizeButton.BackgroundColor3 = _G.Primary;
-	ResizeButton.BackgroundTransparency = 1;
-	ResizeButton.AnchorPoint = Vector2.new(1, 0.5);
-	ResizeButton.Position = UDim2.new(1, -50, 0.5, 0);
-	ResizeButton.Size = UDim2.new(0, 20, 0, 20);
-	ResizeButton.Image = "rbxassetid://10734886735";
-	ResizeButton.ImageTransparency = 0;
-	ResizeButton.ImageColor3 = Color3.fromRGB(245, 245, 245);
-	CreateRounded(ResizeButton, 3);
-	local BackgroundSettings = Instance.new("Frame");
-	BackgroundSettings.Name = "BackgroundSettings";
-	BackgroundSettings.Parent = OutlineMain;
-	BackgroundSettings.ClipsDescendants = true;
-	BackgroundSettings.Active = true;
-	BackgroundSettings.AnchorPoint = Vector2.new(0, 0);
-	BackgroundSettings.BackgroundColor3 = Color3.fromRGB(10, 10, 10);
-	BackgroundSettings.BackgroundTransparency = 0.3;
-	BackgroundSettings.Position = UDim2.new(0, 0, 0, 0);
-	BackgroundSettings.Size = UDim2.new(1, 0, 1, 0);
-	BackgroundSettings.Visible = false;
-	CreateRounded(BackgroundSettings, 15);
-	local SettingsFrame = Instance.new("Frame");
-	SettingsFrame.Name = "SettingsFrame";
-	SettingsFrame.Parent = BackgroundSettings;
-	SettingsFrame.ClipsDescendants = true;
-	SettingsFrame.AnchorPoint = Vector2.new(0.5, 0.5);
-	SettingsFrame.BackgroundColor3 = Color3.fromRGB(24, 24, 26);
-	SettingsFrame.BackgroundTransparency = 0;
-	SettingsFrame.Position = UDim2.new(0.5, 0, 0.5, 0);
-	SettingsFrame.Size = UDim2.new(0.7, 0, 0.7, 0);
-	CreateRounded(SettingsFrame, 15);
-	local CloseSettings = Instance.new("ImageButton");
-	CloseSettings.Name = "CloseSettings";
-	CloseSettings.Parent = SettingsFrame;
-	CloseSettings.BackgroundColor3 = _G.Primary;
-	CloseSettings.BackgroundTransparency = 1;
-	CloseSettings.AnchorPoint = Vector2.new(1, 0);
-	CloseSettings.Position = UDim2.new(1, -20, 0, 15);
-	CloseSettings.Size = UDim2.new(0, 20, 0, 20);
-	CloseSettings.Image = "rbxassetid://10747384394";
-	CloseSettings.ImageTransparency = 0;
-	CloseSettings.ImageColor3 = Color3.fromRGB(245, 245, 245);
-	CreateRounded(CloseSettings, 3);
-	CloseSettings.MouseButton1Click:connect(function()
-		BackgroundSettings.Visible = false;
-	end);
-	local SettingsButton = Instance.new("ImageButton");
-	SettingsButton.Name = "SettingsButton";
-	SettingsButton.Parent = Top;
-	SettingsButton.BackgroundColor3 = _G.Primary;
-	SettingsButton.BackgroundTransparency = 1;
-	SettingsButton.AnchorPoint = Vector2.new(1, 0.5);
-	SettingsButton.Position = UDim2.new(1, -85, 0.5, 0);
-	SettingsButton.Size = UDim2.new(0, 20, 0, 20);
-	SettingsButton.Image = "rbxassetid://10734950020";
-	SettingsButton.ImageTransparency = 0;
-	SettingsButton.ImageColor3 = Color3.fromRGB(245, 245, 245);
-	CreateRounded(SettingsButton, 3);
-	SettingsButton.MouseButton1Click:connect(function()
-		BackgroundSettings.Visible = true;
-	end);
-	local TitleSettings = Instance.new("TextLabel");
-	TitleSettings.Name = "TitleSettings";
-	TitleSettings.Parent = SettingsFrame;
-	TitleSettings.BackgroundColor3 = Color3.fromRGB(255, 255, 255);
-	TitleSettings.BackgroundTransparency = 1;
-	TitleSettings.Position = UDim2.new(0, 20, 0, 15);
-	TitleSettings.Size = UDim2.new(1, 0, 0, 20);
-	TitleSettings.Font = Enum.Font.GothamBold;
-	TitleSettings.AnchorPoint = Vector2.new(0, 0);
-	TitleSettings.Text = "Library Settings";
-	TitleSettings.TextSize = 20;
-	TitleSettings.TextColor3 = Color3.fromRGB(245, 245, 245);
-	TitleSettings.TextXAlignment = Enum.TextXAlignment.Left;
-	local SettingsMenuList = Instance.new("Frame");
-	SettingsMenuList.Name = "SettingsMenuList";
-	SettingsMenuList.Parent = SettingsFrame;
-	SettingsMenuList.ClipsDescendants = true;
-	SettingsMenuList.AnchorPoint = Vector2.new(0, 0);
-	SettingsMenuList.BackgroundColor3 = Color3.fromRGB(24, 24, 26);
-	SettingsMenuList.BackgroundTransparency = 1;
-	SettingsMenuList.Position = UDim2.new(0, 0, 0, 50);
-	SettingsMenuList.Size = UDim2.new(1, 0, 1, -70);
-	CreateRounded(SettingsMenuList, 15);
-	local ScrollSettings = Instance.new("ScrollingFrame");
-	ScrollSettings.Name = "ScrollSettings";
-	ScrollSettings.Parent = SettingsMenuList;
-	ScrollSettings.Active = true;
-	ScrollSettings.BackgroundColor3 = Color3.fromRGB(10, 10, 10);
-	ScrollSettings.Position = UDim2.new(0, 0, 0, 0);
-	ScrollSettings.BackgroundTransparency = 1;
-	ScrollSettings.Size = UDim2.new(1, 0, 1, 0);
-	ScrollSettings.ScrollBarThickness = 3;
-	ScrollSettings.ScrollingDirection = Enum.ScrollingDirection.Y;
-	CreateRounded(SettingsMenuList, 5);
-	local SettingsListLayout = Instance.new("UIListLayout");
-	SettingsListLayout.Name = "SettingsListLayout";
-	SettingsListLayout.Parent = ScrollSettings;
-	SettingsListLayout.SortOrder = Enum.SortOrder.LayoutOrder;
-	SettingsListLayout.Padding = UDim.new(0, 8);
-	local PaddingScroll = Instance.new("UIPadding");
-	PaddingScroll.Name = "PaddingScroll";
-	PaddingScroll.Parent = ScrollSettings;
-	function CreateCheckbox(title, state, callback)
-		local checked = state or false;
-		local Background = Instance.new("Frame");
-		Background.Name = "Background";
-		Background.Parent = ScrollSettings;
-		Background.ClipsDescendants = true;
-		Background.BackgroundColor3 = Color3.fromRGB(24, 24, 26);
-		Background.BackgroundTransparency = 1;
-		Background.Size = UDim2.new(1, 0, 0, 20);
-		local Title = Instance.new("TextLabel");
-		Title.Name = "Title";
-		Title.Parent = Background;
-		Title.BackgroundColor3 = Color3.fromRGB(255, 255, 255);
-		Title.BackgroundTransparency = 1;
-		Title.Position = UDim2.new(0, 60, 0.5, 0);
-		Title.Size = UDim2.new(1, -60, 0, 20);
-		Title.Font = Enum.Font.Code;
-		Title.AnchorPoint = Vector2.new(0, 0.5);
-		Title.Text = title or "";
-		Title.TextSize = 15;
-		Title.TextColor3 = Color3.fromRGB(200, 200, 200);
-		Title.TextXAlignment = Enum.TextXAlignment.Left;
-		local Checkbox = Instance.new("ImageButton");
-		Checkbox.Name = "Checkbox";
-		Checkbox.Parent = Background;
-		Checkbox.BackgroundColor3 = Color3.fromRGB(100, 100, 100);
-		Checkbox.BackgroundTransparency = 0;
-		Checkbox.AnchorPoint = Vector2.new(0, 0.5);
-		Checkbox.Position = UDim2.new(0, 30, 0.5, 0);
-		Checkbox.Size = UDim2.new(0, 20, 0, 20);
-		Checkbox.Image = "rbxassetid://10709790644";
-		Checkbox.ImageTransparency = 1;
-		Checkbox.ImageColor3 = Color3.fromRGB(245, 245, 245);
-		CreateRounded(Checkbox, 5);
-		Checkbox.MouseButton1Click:Connect(function()
-			checked = not checked;
-			if checked then
-				Checkbox.ImageTransparency = 0;
-				Checkbox.BackgroundColor3 = _G.Third;
-			else
-				Checkbox.ImageTransparency = 1;
-				Checkbox.BackgroundColor3 = Color3.fromRGB(100, 100, 100);
-			end;
-			pcall(callback, checked);
-		end);
-		if checked then
-			Checkbox.ImageTransparency = 0;
-			Checkbox.BackgroundColor3 = _G.Third;
-		else
-			Checkbox.ImageTransparency = 1;
-			Checkbox.BackgroundColor3 = Color3.fromRGB(100, 100, 100);
-		end;
-		pcall(callback, checked);
-	end;
-	function CreateButton(title, callback)
-		local Background = Instance.new("Frame");
-		Background.Name = "Background";
-		Background.Parent = ScrollSettings;
-		Background.ClipsDescendants = true;
-		Background.BackgroundColor3 = Color3.fromRGB(24, 24, 26);
-		Background.BackgroundTransparency = 1;
-		Background.Size = UDim2.new(1, 0, 0, 30);
-		local Button = Instance.new("TextButton");
-		Button.Name = "Button";
-		Button.Parent = Background;
-		Button.BackgroundColor3 = _G.Third;
-		Button.BackgroundTransparency = 0;
-		Button.Size = UDim2.new(0.8, 0, 0, 30);
-		Button.Font = Enum.Font.Code;
-		Button.Text = title or "Button";
-		Button.AnchorPoint = Vector2.new(0.5, 0);
-		Button.Position = UDim2.new(0.5, 0, 0, 0);
-		Button.TextColor3 = Color3.fromRGB(255, 255, 255);
-		Button.TextSize = 15;
-		Button.AutoButtonColor = false;
-		Button.MouseButton1Click:Connect(function()
-			callback();
-		end);
-		CreateRounded(Button, 5);
-	end;
-	CreateCheckbox("Save Settings", SettingsLib.SaveSettings, function(state)
-		SettingsLib.SaveSettings = state;
-		(getgenv()).SaveConfig();
-	end);
-	CreateCheckbox("Loading Animation", SettingsLib.LoadAnimation, function(state)
-		SettingsLib.LoadAnimation = state;
-		(getgenv()).SaveConfig();
-	end);
-	CreateButton("Reset Config", function()
-		if isfolder("ADS") then
-			delfolder("ADS");
-		end;
-		Update:Notify("Config has been reseted!");
-	end);
-	local Tab = Instance.new("Frame");
-	Tab.Name = "Tab";
-	Tab.Parent = Main;
-	Tab.BackgroundColor3 = Color3.fromRGB(45, 45, 45);
-	Tab.Position = UDim2.new(0, 8, 0, Top.Size.Y.Offset);
-	Tab.BackgroundTransparency = 1;
-	Tab.Size = UDim2.new(0, WindowConfig.TabWidth, Config.Size.Y.Scale, Config.Size.Y.Offset - Top.Size.Y.Offset - 8);
-	local BtnStroke = Instance.new("UIStroke");
-	local ScrollTab = Instance.new("ScrollingFrame");
-	ScrollTab.Name = "ScrollTab";
-	ScrollTab.Parent = Tab;
-	ScrollTab.Active = true;
-	ScrollTab.BackgroundColor3 = Color3.fromRGB(10, 10, 10);
-	ScrollTab.Position = UDim2.new(0, 0, 0, 0);
-	ScrollTab.BackgroundTransparency = 1;
-	ScrollTab.Size = UDim2.new(1, 0, 1, 0);
-	ScrollTab.ScrollBarThickness = 0;
-	ScrollTab.ScrollingDirection = Enum.ScrollingDirection.Y;
-	CreateRounded(Tab, 5);
-	local TabListLayout = Instance.new("UIListLayout");
-	TabListLayout.Name = "TabListLayout";
-	TabListLayout.Parent = ScrollTab;
-	TabListLayout.SortOrder = Enum.SortOrder.LayoutOrder;
-	TabListLayout.Padding = UDim.new(0, 2);
-	local PPD = Instance.new("UIPadding");
-	PPD.Name = "PPD";
-	PPD.Parent = ScrollTab;
-	local Page = Instance.new("Frame");
-	Page.Name = "Page";
-	Page.Parent = Main;
-	Page.BackgroundColor3 = _G.Dark;
-	Page.Position = UDim2.new(0, Tab.Size.X.Offset + 18, 0, Top.Size.Y.Offset);
-	Page.Size = UDim2.new(Config.Size.X.Scale, Config.Size.X.Offset - Tab.Size.X.Offset - 25, Config.Size.Y.Scale, Config.Size.Y.Offset - Top.Size.Y.Offset - 8);
-	Page.BackgroundTransparency = 1;
-	CreateRounded(Page, 3);
-	local MainPage = Instance.new("Frame");
-	MainPage.Name = "MainPage";
-	MainPage.Parent = Page;
-	MainPage.ClipsDescendants = true;
-	MainPage.BackgroundColor3 = Color3.fromRGB(255, 255, 255);
-	MainPage.BackgroundTransparency = 1;
-	MainPage.Size = UDim2.new(1, 0, 1, 0);
-	local PageList = Instance.new("Folder");
-	PageList.Name = "PageList";
-	PageList.Parent = MainPage;
-	local UIPageLayout = Instance.new("UIPageLayout");
-	UIPageLayout.Parent = PageList;
-	UIPageLayout.SortOrder = Enum.SortOrder.LayoutOrder;
-	UIPageLayout.EasingDirection = Enum.EasingDirection.InOut;
-	UIPageLayout.EasingStyle = Enum.EasingStyle.Quad;
-	UIPageLayout.FillDirection = Enum.FillDirection.Vertical;
-	UIPageLayout.Padding = UDim.new(0, 10);
-	UIPageLayout.TweenTime = 0;
-	UIPageLayout.GamepadInputEnabled = false;
-	UIPageLayout.ScrollWheelInputEnabled = false;
-	UIPageLayout.TouchInputEnabled = false;
-	MakeDraggable(Top, OutlineMain);
-	UserInputService.InputBegan:Connect(function(input)
-		if input.KeyCode == Enum.KeyCode.Insert then
-			(game.CoreGui:FindFirstChild("ADS")).Enabled = not (game.CoreGui:FindFirstChild("ADS")).Enabled;
-		end;
-	end);
-	local Dragging = false;
-	DragButton.InputBegan:Connect(function(Input)
-		if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
-			Dragging = true;
-		end;
-	end);
-	UserInputService.InputEnded:Connect(function(Input)
-		if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
-			Dragging = false;
-		end;
-	end);
-	UserInputService.InputChanged:Connect(function(Input)
-		if Dragging and (Input.UserInputType == Enum.UserInputType.MouseMovement or Input.UserInputType == Enum.UserInputType.Touch) then
-			OutlineMain.Size = UDim2.new(0, math.clamp(Input.Position.X - Main.AbsolutePosition.X + 15, WindowConfig.Size.X.Offset + 15, math.huge), 0, math.clamp(Input.Position.Y - Main.AbsolutePosition.Y + 15, WindowConfig.Size.Y.Offset + 15, math.huge));
-			Main.Size = UDim2.new(0, math.clamp(Input.Position.X - Main.AbsolutePosition.X, WindowConfig.Size.X.Offset, math.huge), 0, math.clamp(Input.Position.Y - Main.AbsolutePosition.Y, WindowConfig.Size.Y.Offset, math.huge));
-			Page.Size = UDim2.new(0, math.clamp(Input.Position.X - Page.AbsolutePosition.X - 8, WindowConfig.Size.X.Offset - Tab.Size.X.Offset - 25, math.huge), 0, math.clamp(Input.Position.Y - Page.AbsolutePosition.Y - 8, WindowConfig.Size.Y.Offset - Top.Size.Y.Offset - 10, math.huge));
-			Tab.Size = UDim2.new(0, WindowConfig.TabWidth, 0, math.clamp(Input.Position.Y - Tab.AbsolutePosition.Y - 8, WindowConfig.Size.Y.Offset - Top.Size.Y.Offset - 10, math.huge));
-		end;
-	end);
-	local uitab = {};
-	function uitab:Tab(text, img)
-		local BtnStroke = Instance.new("UIStroke");
-		local TabButton = Instance.new("TextButton");
-		local title = Instance.new("TextLabel");
-		local TUICorner = Instance.new("UICorner");
-		local UICorner = Instance.new("UICorner");
-		local Title = Instance.new("TextLabel");
-		TabButton.Parent = ScrollTab;
-		TabButton.Name = text .. "Unique";
-		TabButton.Text = "";
-		TabButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100);
-		TabButton.BackgroundTransparency = 1;
-		TabButton.Size = UDim2.new(1, 0, 0, 35);
-		TabButton.Font = Enum.Font.Nunito;
-		TabButton.TextColor3 = Color3.fromRGB(255, 255, 255);
-		TabButton.TextSize = 12;
-		TabButton.TextTransparency = 0.9;
-		local SelectedTab = Instance.new("Frame");
-		SelectedTab.Name = "SelectedTab";
-		SelectedTab.Parent = TabButton;
-		SelectedTab.BackgroundColor3 = _G.Third;
-		SelectedTab.BackgroundTransparency = 0;
-		SelectedTab.Size = UDim2.new(0, 3, 0, 0);
-		SelectedTab.Position = UDim2.new(0, 0, 0.5, 0);
-		SelectedTab.AnchorPoint = Vector2.new(0, 0.5);
-		UICorner.CornerRadius = UDim.new(0, 100);
-		UICorner.Parent = SelectedTab;
-		Title.Parent = TabButton;
-		Title.Name = "Title";
-		Title.BackgroundColor3 = Color3.fromRGB(150, 150, 150);
-		Title.BackgroundTransparency = 1;
-		Title.Position = UDim2.new(0, 30, 0.5, 0);
-		Title.Size = UDim2.new(0, 100, 0, 30);
-		Title.Font = Enum.Font.Roboto;
-		Title.Text = text;
-		Title.AnchorPoint = Vector2.new(0, 0.5);
-		Title.TextColor3 = Color3.fromRGB(255, 255, 255);
-		Title.TextTransparency = 0.4;
-		Title.TextSize = 14;
-		Title.TextXAlignment = Enum.TextXAlignment.Left;
-		local IDK = Instance.new("ImageLabel");
-		IDK.Name = "IDK";
-		IDK.Parent = TabButton;
-		IDK.BackgroundColor3 = Color3.fromRGB(255, 255, 255);
-		IDK.BackgroundTransparency = 1;
-		IDK.ImageTransparency = 0.3;
-		IDK.Position = UDim2.new(0, 7, 0.5, 0);
-		IDK.Size = UDim2.new(0, 15, 0, 15);
-		IDK.AnchorPoint = Vector2.new(0, 0.5);
-		IDK.Image = img;
-		CreateRounded(TabButton, 6);
-		local MainFramePage = Instance.new("ScrollingFrame");
-		MainFramePage.Name = text .. "_Page";
-		MainFramePage.Parent = PageList;
-		MainFramePage.Active = true;
-		MainFramePage.BackgroundColor3 = _G.Dark;
-		MainFramePage.Position = UDim2.new(0, 0, 0, 0);
-		MainFramePage.BackgroundTransparency = 1;
-		MainFramePage.Size = UDim2.new(1, 0, 1, 0);
-		MainFramePage.ScrollBarThickness = 0;
-		MainFramePage.ScrollingDirection = Enum.ScrollingDirection.Y;
-		local zzzR = Instance.new("UICorner");
-		zzzR.Parent = MainPage;
-		zzzR.CornerRadius = UDim.new(0, 5);
-		local UIPadding = Instance.new("UIPadding");
-		local UIListLayout = Instance.new("UIListLayout");
-		UIPadding.Parent = MainFramePage;
-		UIListLayout.Padding = UDim.new(0, 3);
-		UIListLayout.Parent = MainFramePage;
-		UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder;
-		TabButton.MouseButton1Click:Connect(function()
-			for i, v in next, ScrollTab:GetChildren() do
-				if v:IsA("TextButton") then
-					(TweenService:Create(v, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-						BackgroundTransparency = 1
-					})):Play();
-					(TweenService:Create(v.SelectedTab, TweenInfo.new(0, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-						Size = UDim2.new(0, 3, 0, 0)
-					})):Play();
-					(TweenService:Create(v.IDK, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-						ImageTransparency = 0.4
-					})):Play();
-					(TweenService:Create(v.Title, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-						TextTransparency = 0.4
-					})):Play();
-				end;
-				(TweenService:Create(TabButton, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-					BackgroundTransparency = 0.8
-				})):Play();
-				(TweenService:Create(SelectedTab, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-					Size = UDim2.new(0, 3, 0, 15)
-				})):Play();
-				(TweenService:Create(IDK, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-					ImageTransparency = 0
-				})):Play();
-				(TweenService:Create(Title, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-					TextTransparency = 0
-				})):Play();
-			end;
-			for i, v in next, PageList:GetChildren() do
-				currentpage = string.gsub(TabButton.Name, "Unique", "") .. "_Page";
-				if v.Name == currentpage then
-					UIPageLayout:JumpTo(v);
-				end;
-			end;
-		end);
-		if abc == false then
-			for i, v in next, ScrollTab:GetChildren() do
-				if v:IsA("TextButton") then
-					(TweenService:Create(v, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-						BackgroundTransparency = 1
-					})):Play();
-					(TweenService:Create(v.SelectedTab, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-						Size = UDim2.new(0, 3, 0, 15)
-					})):Play();
-					(TweenService:Create(v.IDK, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-						ImageTransparency = 0.4
-					})):Play();
-					(TweenService:Create(v.Title, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-						TextTransparency = 0.4
-					})):Play();
-				end;
-				(TweenService:Create(TabButton, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-					BackgroundTransparency = 0.8
-				})):Play();
-				(TweenService:Create(SelectedTab, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-					Size = UDim2.new(0, 3, 0, 15)
-				})):Play();
-				(TweenService:Create(IDK, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-					ImageTransparency = 0
-				})):Play();
-				(TweenService:Create(Title, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-					TextTransparency = 0
-				})):Play();
-			end;
-			UIPageLayout:JumpToIndex(1);
-			abc = true;
-		end;
-		(game:GetService("RunService")).Stepped:Connect(function()
-			pcall(function()
-				MainFramePage.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y);
-				ScrollTab.CanvasSize = UDim2.new(0, 0, 0, TabListLayout.AbsoluteContentSize.Y);
-				ScrollSettings.CanvasSize = UDim2.new(0, 0, 0, SettingsListLayout.AbsoluteContentSize.Y);
-			end);
-		end);
-		local defaultSize = true;
-		ResizeButton.MouseButton1Click:Connect(function()
-			if defaultSize then
-				defaultSize = false;
-				OutlineMain:TweenPosition(UDim2.new(0.5, 0, 0.45, 0), "Out", "Quad", 0.2, true);
-				Main:TweenSize(UDim2.new(1, 0, 1, 0), "Out", "Quad", 0.4, true, function()
-					Page:TweenSize(UDim2.new(0, Main.AbsoluteSize.X - Tab.AbsoluteSize.X - 25, 0, Main.AbsoluteSize.Y - Top.AbsoluteSize.Y - 10), "Out", "Quad", 0.4, true);
-					Tab:TweenSize(UDim2.new(0, WindowConfig.TabWidth, 0, Main.AbsoluteSize.Y - Top.AbsoluteSize.Y - 10), "Out", "Quad", 0.4, true);
-				end);
-				OutlineMain:TweenSize(UDim2.new(1, -10, 1, -10), "Out", "Quad", 0.4, true);
-				ResizeButton.Image = "rbxassetid://10734895698";
-			else
-				defaultSize = true;
-				Main:TweenSize(UDim2.new(0, WindowConfig.Size.X.Offset, 0, WindowConfig.Size.Y.Offset), "Out", "Quad", 0.4, true, function()
-					Page:TweenSize(UDim2.new(0, Main.AbsoluteSize.X - Tab.AbsoluteSize.X - 25, 0, Main.AbsoluteSize.Y - Top.AbsoluteSize.Y - 10), "Out", "Quad", 0.4, true);
-					Tab:TweenSize(UDim2.new(0, WindowConfig.TabWidth, 0, Main.AbsoluteSize.Y - Top.AbsoluteSize.Y - 10), "Out", "Quad", 0.4, true);
-				end);
-				OutlineMain:TweenSize(UDim2.new(0, WindowConfig.Size.X.Offset + 15, 0, WindowConfig.Size.Y.Offset + 15), "Out", "Quad", 0.4, true);
-				ResizeButton.Image = "rbxassetid://10734886735";
-			end;
-		end);
-		local main = {};
-		function main:Button(text, callback)
-			local Button = Instance.new("Frame");
-			local UICorner = Instance.new("UICorner");
-			local TextLabel = Instance.new("TextLabel");
-			local TextButton = Instance.new("TextButton");
-			local UICorner_2 = Instance.new("UICorner");
-			local Black = Instance.new("Frame");
-			local UICorner_3 = Instance.new("UICorner");
-			Button.Name = "Button";
-			Button.Parent = MainFramePage;
-			Button.BackgroundColor3 = _G.Primary;
-			Button.BackgroundTransparency = 1;
-			Button.Size = UDim2.new(1, 0, 0, 36);
-			UICorner.CornerRadius = UDim.new(0, 5);
-			UICorner.Parent = Button;
-			local ImageLabel = Instance.new("ImageLabel");
-			ImageLabel.Name = "ImageLabel";
-			ImageLabel.Parent = TextButton;
-			ImageLabel.BackgroundColor3 = _G.Primary;
-			ImageLabel.BackgroundTransparency = 1;
-			ImageLabel.AnchorPoint = Vector2.new(0.5, 0.5);
-			ImageLabel.Position = UDim2.new(0.5, 0, 0.5, 0);
-			ImageLabel.Size = UDim2.new(0, 15, 0, 15);
-			ImageLabel.Image = "rbxassetid://10734898355";
-			ImageLabel.ImageTransparency = 0;
-			ImageLabel.ImageColor3 = Color3.fromRGB(255, 255, 255);
-			CreateRounded(TextButton, 4);
-			TextButton.Name = "TextButton";
-			TextButton.Parent = Button;
-			TextButton.BackgroundColor3 = Color3.fromRGB(200, 200, 200);
-			TextButton.BackgroundTransparency = 0.8;
-			TextButton.AnchorPoint = Vector2.new(1, 0.5);
-			TextButton.Position = UDim2.new(1, -1, 0.5, 0);
-			TextButton.Size = UDim2.new(0, 25, 0, 25);
-			TextButton.Font = Enum.Font.Nunito;
-			TextButton.Text = "";
-			TextButton.TextXAlignment = Enum.TextXAlignment.Left;
-			TextButton.TextColor3 = Color3.fromRGB(255, 255, 255);
-			TextButton.TextSize = 15;
-			TextLabel.Name = "TextLabel";
-			TextLabel.Parent = Button;
-			TextLabel.BackgroundColor3 = _G.Primary;
-			TextLabel.BackgroundTransparency = 1;
-			TextLabel.AnchorPoint = Vector2.new(0, 0.5);
-			TextLabel.Position = UDim2.new(0, 20, 0.5, 0);
-			TextLabel.Size = UDim2.new(1, -50, 1, 0);
-			TextLabel.Font = Enum.Font.Cartoon;
-			TextLabel.RichText = true;
-			TextLabel.Text = text;
-			TextLabel.TextXAlignment = Enum.TextXAlignment.Left;
-			TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255);
-			TextLabel.TextSize = 15;
-			TextLabel.ClipsDescendants = true;
-            local ArrowRight = Instance.new("ImageLabel");
-			ArrowRight.Name = "ArrowRight";
-			ArrowRight.Parent = Button;
-			ArrowRight.BackgroundColor3 = _G.Primary;
-			ArrowRight.BackgroundTransparency = 1;
-			ArrowRight.AnchorPoint = Vector2.new(0, 0.5);
-			ArrowRight.Position = UDim2.new(0, 0, 0.5, 0);
-			ArrowRight.Size = UDim2.new(0, 15, 0, 15);
-			ArrowRight.Image = "rbxassetid://10709768347";
-			ArrowRight.ImageTransparency = 0;
-			ArrowRight.ImageColor3 = Color3.fromRGB(255, 255, 255);
-			Black.Name = "Black";
-			Black.Parent = Button;
-			Black.BackgroundColor3 = Color3.fromRGB(0, 0, 0);
-			Black.BackgroundTransparency = 1;
-			Black.BorderSizePixel = 0;
-			Black.Position = UDim2.new(0, 0, 0, 0);
-			Black.Size = UDim2.new(1, 0, 0, 33);
-			UICorner_3.CornerRadius = UDim.new(0, 5);
-			UICorner_3.Parent = Black;
-			TextButton.MouseButton1Click:Connect(function()
-				callback();
-			end);
-		end;
-		function main:Toggle(text, config, desc, callback)
-			config = config or false;
-			local toggled = config;
-			local UICorner = Instance.new("UICorner");
-			local TogglePadding = Instance.new("UIPadding");
-			local UIStroke = Instance.new("UIStroke");
-			local Button = Instance.new("TextButton");
-			local UICorner_2 = Instance.new("UICorner");
-			local Title = Instance.new("TextLabel");
-			local Title2 = Instance.new("TextLabel");
-			local Desc = Instance.new("TextLabel");
-			local ToggleImage = Instance.new("TextButton");
-			local UICorner_3 = Instance.new("UICorner");
-			local UICorner_5 = Instance.new("UICorner");
-			local Circle = Instance.new("Frame");
-			local ToggleFrame = Instance.new("Frame");
-			local UICorner_4 = Instance.new("UICorner");
-			local TextBoxIcon = Instance.new("ImageLabel");
-			Button.Name = "Button";
-			Button.Parent = MainFramePage;
-			Button.BackgroundColor3 = _G.Primary;
-			Button.BackgroundTransparency = 0.8;
-			Button.AutoButtonColor = false;
-			Button.Font = Enum.Font.SourceSans;
-			Button.Text = "";
-			Button.TextColor3 = Color3.fromRGB(0, 0, 0);
-			Button.TextSize = 11;
-			CreateRounded(Button, 5);
-			Title2.Parent = Button;
-			Title2.BackgroundColor3 = Color3.fromRGB(150, 150, 150);
-			Title2.BackgroundTransparency = 1;
-			Title2.Size = UDim2.new(1, 0, 0, 35);
-			Title2.Font = Enum.Font.Cartoon;
-			Title2.Text = text;
-			Title2.TextColor3 = Color3.fromRGB(255, 255, 255);
-			Title2.TextSize = 15;
-			Title2.TextXAlignment = Enum.TextXAlignment.Left;
-			Title2.AnchorPoint = Vector2.new(0, 0.5);
-			Desc.Parent = Title2;
-			Desc.BackgroundColor3 = Color3.fromRGB(100, 100, 100);
-			Desc.BackgroundTransparency = 1;
-			Desc.Position = UDim2.new(0, 0, 0, 22);
-			Desc.Size = UDim2.new(0, 280, 0, 16);
-			Desc.Font = Enum.Font.Gotham;
-			if desc then
-				Desc.Text = desc;
-				Title2.Position = UDim2.new(0, 15, 0.5, -5);
-				Desc.Position = UDim2.new(0, 0, 0, 22);
-				Button.Size = UDim2.new(1, 0, 0, 46);
-			else
-				Title2.Position = UDim2.new(0, 15, 0.5, 0);
-				Desc.Visible = false;
-				Button.Size = UDim2.new(1, 0, 0, 36);
-			end;
-			Desc.TextColor3 = Color3.fromRGB(150, 150, 150);
-			Desc.TextSize = 10;
-			Desc.TextXAlignment = Enum.TextXAlignment.Left;
-			ToggleFrame.Name = "ToggleFrame";
-			ToggleFrame.Parent = Button;
-			ToggleFrame.BackgroundColor3 = _G.Dark;
-			ToggleFrame.BackgroundTransparency = 1;
-			ToggleFrame.Position = UDim2.new(1, -10, 0.5, 0);
-			ToggleFrame.Size = UDim2.new(0, 35, 0, 20);
-			ToggleFrame.AnchorPoint = Vector2.new(1, 0.5);
-			UICorner_5.CornerRadius = UDim.new(0, 10);
-			UICorner_5.Parent = ToggleFrame;
-			ToggleImage.Name = "ToggleImage";
-			ToggleImage.Parent = ToggleFrame;
-			ToggleImage.BackgroundColor3 = Color3.fromRGB(200, 200, 200);
-			ToggleImage.BackgroundTransparency = 0.8;
-			ToggleImage.Position = UDim2.new(0, 0, 0, 0);
-			ToggleImage.AnchorPoint = Vector2.new(0, 0);
-			ToggleImage.Size = UDim2.new(1, 0, 1, 0);
-			ToggleImage.Text = "";
-			ToggleImage.AutoButtonColor = false;
-			CreateRounded(ToggleImage, 10);
-			Circle.Name = "Circle";
-			Circle.Parent = ToggleImage;
-			Circle.BackgroundColor3 = Color3.fromRGB(255, 255, 255);
-			Circle.BackgroundTransparency = 0;
-			Circle.Position = UDim2.new(0, 3, 0.5, 0);
-			Circle.Size = UDim2.new(0, 14, 0, 14);
-			Circle.AnchorPoint = Vector2.new(0, 0.5);
-			UICorner_4.CornerRadius = UDim.new(0, 10);
-			UICorner_4.Parent = Circle;
-			ToggleImage.MouseButton1Click:Connect(function()
-				if toggled == false then
-					toggled = true;
-					Circle:TweenPosition(UDim2.new(0, 17, 0.5, 0), "Out", "Sine", 0.2, true);
-					(TweenService:Create(ToggleImage, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-						BackgroundColor3 = _G.Third,
-						BackgroundTransparency = 0
-					})):Play();
-				else
-					toggled = false;
-					Circle:TweenPosition(UDim2.new(0, 4, 0.5, 0), "Out", "Sine", 0.2, true);
-					(TweenService:Create(ToggleImage, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-						BackgroundColor3 = Color3.fromRGB(200, 200, 200),
-						BackgroundTransparency = 0.8
-					})):Play();
-				end;
-				pcall(callback, toggled);
-			end);
-			if config == true then
-				toggled = true;
-				Circle:TweenPosition(UDim2.new(0, 17, 0.5, 0), "Out", "Sine", 0.4, true);
-				(TweenService:Create(ToggleImage, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-					BackgroundColor3 = _G.Third,
-					BackgroundTransparency = 0
-				})):Play();
-				pcall(callback, toggled);
-			end;
-		end;
-		function main:Dropdown(text, option, var, callback)
-			local isdropping = false;
-			local Dropdown = Instance.new("Frame");
-			local DropdownFrameScroll = Instance.new("Frame");
-			local UICorner = Instance.new("UICorner");
-			local UICorner_2 = Instance.new("UICorner");
-			local UICorner_3 = Instance.new("UICorner");
-			local UICorner_4 = Instance.new("UICorner");
-			local DropTitle = Instance.new("TextLabel");
-			local DropScroll = Instance.new("ScrollingFrame");
-			local UIListLayout = Instance.new("UIListLayout");
-			local UIPadding = Instance.new("UIPadding");
-			local DropButton = Instance.new("TextButton");
-			local HideButton = Instance.new("TextButton");
-			local SelectItems = Instance.new("TextButton");
-			local DropImage = Instance.new("ImageLabel");
-			local UIStroke = Instance.new("UIStroke");
-			Dropdown.Name = "Dropdown";
-			Dropdown.Parent = MainFramePage;
-			Dropdown.BackgroundColor3 = _G.Primary;
-			Dropdown.BackgroundTransparency = 0.8;
-			Dropdown.ClipsDescendants = false;
-			Dropdown.Size = UDim2.new(1, 0, 0, 40);
-			UICorner.CornerRadius = UDim.new(0, 5);
-			UICorner.Parent = Dropdown;
-			DropTitle.Name = "DropTitle";
-			DropTitle.Parent = Dropdown;
-			DropTitle.BackgroundColor3 = _G.Primary;
-			DropTitle.BackgroundTransparency = 1;
-			DropTitle.Size = UDim2.new(1, 0, 0, 30);
-			DropTitle.Font = Enum.Font.Cartoon;
-			DropTitle.Text = text;
-			DropTitle.TextColor3 = Color3.fromRGB(255, 255, 255);
-			DropTitle.TextSize = 15;
-			DropTitle.TextXAlignment = Enum.TextXAlignment.Left;
-			DropTitle.Position = UDim2.new(0, 15, 0, 5);
-			DropTitle.AnchorPoint = Vector2.new(0, 0);
-			SelectItems.Name = "SelectItems";
-			SelectItems.Parent = Dropdown;
-			SelectItems.BackgroundColor3 = Color3.fromRGB(24, 24, 26);
-			SelectItems.TextColor3 = Color3.fromRGB(255, 255, 255);
-			SelectItems.BackgroundTransparency = 0;
-			SelectItems.Position = UDim2.new(1, -5, 0, 5);
-			SelectItems.Size = UDim2.new(0, 100, 0, 30);
-			SelectItems.AnchorPoint = Vector2.new(1, 0);
-			SelectItems.Font = Enum.Font.GothamMedium;
-			SelectItems.AutoButtonColor = false;
-			SelectItems.TextSize = 9;
-			SelectItems.ZIndex = 1;
-			SelectItems.ClipsDescendants = true;
-			SelectItems.Text = "   Select Items";
-			SelectItems.TextXAlignment = Enum.TextXAlignment.Left;
-			local ArrowDown = Instance.new("ImageLabel");
-			ArrowDown.Name = "ArrowDown";
-			ArrowDown.Parent = Dropdown;
-			ArrowDown.BackgroundColor3 = _G.Primary;
-			ArrowDown.BackgroundTransparency = 1;
-			ArrowDown.AnchorPoint = Vector2.new(1, 0);
-			ArrowDown.Position = UDim2.new(1, -110, 0, 10);
-			ArrowDown.Size = UDim2.new(0, 20, 0, 20);
-			ArrowDown.Image = "rbxassetid://10709790948";
-			ArrowDown.ImageTransparency = 0;
-			ArrowDown.ImageColor3 = Color3.fromRGB(255, 255, 255);
-			CreateRounded(SelectItems, 5);
-			CreateRounded(DropScroll, 5);
-			DropdownFrameScroll.Name = "DropdownFrameScroll";
-			DropdownFrameScroll.Parent = Dropdown;
-			DropdownFrameScroll.BackgroundColor3 = Color3.fromRGB(24, 24, 26);
-			DropdownFrameScroll.BackgroundTransparency = 0;
-			DropdownFrameScroll.ClipsDescendants = true;
-			DropdownFrameScroll.Size = UDim2.new(1, 0, 0, 100);
-			DropdownFrameScroll.Position = UDim2.new(0, 5, 0, 40);
-			DropdownFrameScroll.Visible = false;
-			DropdownFrameScroll.AnchorPoint = Vector2.new(0, 0);
-			UICorner_4.Parent = DropdownFrameScroll;
-			UICorner_4.CornerRadius = UDim.new(0, 5);
-			DropScroll.Name = "DropScroll";
-			DropScroll.Parent = DropdownFrameScroll;
-			DropScroll.ScrollingDirection = Enum.ScrollingDirection.Y;
-			DropScroll.Active = true;
-			DropScroll.BackgroundColor3 = Color3.fromRGB(255, 255, 255);
-			DropScroll.BackgroundTransparency = 1;
-			DropScroll.BorderSizePixel = 0;
-			DropScroll.Position = UDim2.new(0, 0, 0, 10);
-			DropScroll.Size = UDim2.new(1, 0, 0, 80);
-			DropScroll.AnchorPoint = Vector2.new(0, 0);
-			DropScroll.ClipsDescendants = true;
-			DropScroll.ScrollBarThickness = 3;
-			DropScroll.ZIndex = 3;
-			local PaddingDrop = Instance.new("UIPadding");
-			PaddingDrop.PaddingLeft = UDim.new(0, 10);
-			PaddingDrop.PaddingRight = UDim.new(0, 10);
-			PaddingDrop.Parent = DropScroll;
-			PaddingDrop.Name = "PaddingDrop";
-			UIListLayout.Parent = DropScroll;
-			UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder;
-			UIListLayout.Padding = UDim.new(0, 1);
-			UIPadding.Parent = DropScroll;
-			UIPadding.PaddingLeft = UDim.new(0, 5);
-			local function updateCanvas()
-				DropScroll.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y);
-			end;
-			local function setActive(value, fireCallback)
-				if value == nil then
-					return;
-				end;
-				activeItem = tostring(value);
-				SelectItems.Text = "   " .. activeItem;
-				for i, v in next, DropScroll:GetChildren() do
-					if v:IsA("TextButton") then
-						local SelectedItems = v:FindFirstChild("SelectedItems");
-						if activeItem == v.Text then
-							v.BackgroundTransparency = 0.8;
-							v.TextTransparency = 0;
-							if SelectedItems then
-								SelectedItems.BackgroundTransparency = 0;
-							end;
-						else
-							v.BackgroundTransparency = 1;
-							v.TextTransparency = 0.5;
-							if SelectedItems then
-								SelectedItems.BackgroundTransparency = 1;
-							end;
-						end;
-					end;
-				end;
-				if fireCallback then
-					pcall(callback, activeItem);
-				end;
-			end;
-			local function clearItems()
-				SelectItems.Text = "   Select Items";
-				activeItem = nil;
-				for i, v in next, DropScroll:GetChildren() do
-					if v ~= UIListLayout and v ~= UIPadding and v ~= PaddingDrop then
-						v:Destroy();
-					end;
-				end;
-				DropScroll.CanvasPosition = Vector2.new(0, 0);
-				updateCanvas();
-			end;
-			local function addItem(value)
-				local Item = Instance.new("TextButton");
-				local CRNRitems = Instance.new("UICorner");
-				local UICorner_5 = Instance.new("UICorner");
-				local ItemPadding = Instance.new("UIPadding");
-				Item.Name = "Item";
-				Item.Parent = DropScroll;
-				Item.BackgroundColor3 = _G.Primary;
-				Item.BackgroundTransparency = 1;
-				Item.Size = UDim2.new(1, 0, 0, 30);
-				Item.Font = Enum.Font.Nunito;
-				Item.Text = tostring(value);
-				Item.TextColor3 = Color3.fromRGB(255, 255, 255);
-				Item.TextSize = 13;
-				Item.TextTransparency = 0.5;
-				Item.TextXAlignment = Enum.TextXAlignment.Left;
-				Item.ZIndex = 4;
-				ItemPadding.Parent = Item;
-				ItemPadding.PaddingLeft = UDim.new(0, 8);
-				UICorner_5.Parent = Item;
-				UICorner_5.CornerRadius = UDim.new(0, 5);
-				local SelectedItems = Instance.new("Frame");
-				SelectedItems.Name = "SelectedItems";
-				SelectedItems.Parent = Item;
-				SelectedItems.BackgroundColor3 = _G.Third;
-				SelectedItems.BackgroundTransparency = 1;
-				SelectedItems.Size = UDim2.new(0, 3, 0.4, 0);
-				SelectedItems.Position = UDim2.new(0, -8, 0.5, 0);
-				SelectedItems.AnchorPoint = Vector2.new(0, 0.5);
-				SelectedItems.ZIndex = 4;
-				CRNRitems.Parent = SelectedItems;
-				CRNRitems.CornerRadius = UDim.new(0, 999);
-				Item.MouseButton1Click:Connect(function()
-					SelectItems.ClipsDescendants = true;
-					setActive(Item.Text, true);
-				end);
-				updateCanvas();
-			end;
-			local function rebuildItems(items, selected)
-				clearItems();
-				items = items or {};
-				for _, v in ipairs(items) do
-					addItem(v);
-				end;
-				if selected ~= nil then
-					setActive(selected, false);
-				elseif activeItem ~= nil then
-					setActive(activeItem, false);
-				end;
-				task.defer(updateCanvas);
-			end;
-			if type(option) == "table" then
-				rebuildItems(option, var);
-			end;
-			SelectItems.MouseButton1Click:Connect(function()
-				if isdropping == false then
-					isdropping = true;
-					(TweenService:Create(DropdownFrameScroll, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-						Size = UDim2.new(1, -10, 0, 100),
-						Visible = true
-					})):Play();
-					(TweenService:Create(Dropdown, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-						Size = UDim2.new(1, 0, 0, 145)
-					})):Play();
-                    (TweenService:Create(ArrowDown, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-                        Rotation = 180
-                    })):Play();
-				else
-					isdropping = false;
-					(TweenService:Create(DropdownFrameScroll, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-						Size = UDim2.new(1, -10, 0, 0),
-						Visible = false
-					})):Play();
-					(TweenService:Create(Dropdown, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-						Size = UDim2.new(1, 0, 0, 40)
-					})):Play();
-                    (TweenService:Create(ArrowDown, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-                        Rotation = 0
-                    })):Play();
-				end;
-			end);
-			local dropfunc = {};
-			function dropfunc:Add(t)
-				addItem(t);
-			end;
-			function dropfunc:Select(value)
-				setActive(value, false);
-			end;
-			function dropfunc:Clear()
-				isdropping = false;
-				DropdownFrameScroll.Visible = false;
-				clearItems();
-			end;
-			function dropfunc:Refresh(items, selected)
-				rebuildItems(items, selected);
-			end;
-			return dropfunc;
-		end;
-		function main:Slider(text, min, max, set, callback)
-			local Slider = Instance.new("Frame");
-			local slidercorner = Instance.new("UICorner");
-			local sliderr = Instance.new("Frame");
-			local sliderrcorner = Instance.new("UICorner");
-			local ImageLabel = Instance.new("ImageLabel");
-			local SliderStroke = Instance.new("UIStroke");
-			local Title = Instance.new("TextLabel");
-			local ValueText = Instance.new("TextLabel");
-			local HAHA = Instance.new("Frame");
-			local AHEHE = Instance.new("TextButton");
-			local bar = Instance.new("Frame");
-			local bar1 = Instance.new("Frame");
-			local bar1corner = Instance.new("UICorner");
-			local barcorner = Instance.new("UICorner");
-			local circlebar = Instance.new("Frame");
-			local UICorner = Instance.new("UICorner");
-			local slidervalue = Instance.new("Frame");
-			local valuecorner = Instance.new("UICorner");
-			local TextBox = Instance.new("TextBox");
-			local UICorner_2 = Instance.new("UICorner");
-			local posto = Instance.new("UIStroke");
-			Slider.Name = "Slider";
-			Slider.Parent = MainFramePage;
-			Slider.BackgroundColor3 = _G.Primary;
-			Slider.BackgroundTransparency = 1;
-			Slider.Size = UDim2.new(1, 0, 0, 35);
-			slidercorner.CornerRadius = UDim.new(0, 5);
-			slidercorner.Name = "slidercorner";
-			slidercorner.Parent = Slider;
-			sliderr.Name = "sliderr";
-			sliderr.Parent = Slider;
-			sliderr.BackgroundColor3 = _G.Primary;
-			sliderr.BackgroundTransparency = 0.8;
-			sliderr.Position = UDim2.new(0, 0, 0, 0);
-			sliderr.Size = UDim2.new(1, 0, 0, 35);
-			sliderrcorner.CornerRadius = UDim.new(0, 5);
-			sliderrcorner.Name = "sliderrcorner";
-			sliderrcorner.Parent = sliderr;
-			Title.Parent = sliderr;
-			Title.BackgroundColor3 = Color3.fromRGB(150, 150, 150);
-			Title.BackgroundTransparency = 1;
-			Title.Position = UDim2.new(0, 15, 0.5, 0);
-			Title.Size = UDim2.new(1, 0, 0, 30);
-			Title.Font = Enum.Font.Cartoon;
-			Title.Text = text;
-			Title.AnchorPoint = Vector2.new(0, 0.5);
-			Title.TextColor3 = Color3.fromRGB(255, 255, 255);
-			Title.TextSize = 15;
-			Title.TextXAlignment = Enum.TextXAlignment.Left;
-			ValueText.Parent = bar;
-			ValueText.BackgroundColor3 = Color3.fromRGB(150, 150, 150);
-			ValueText.BackgroundTransparency = 1;
-			ValueText.Position = UDim2.new(0, -38, 0.5, 0);
-			ValueText.Size = UDim2.new(0, 30, 0, 30);
-			ValueText.Font = Enum.Font.GothamMedium;
-			ValueText.Text = set;
-			ValueText.AnchorPoint = Vector2.new(0, 0.5);
-			ValueText.TextColor3 = Color3.fromRGB(255, 255, 255);
-			ValueText.TextSize = 12;
-			ValueText.TextXAlignment = Enum.TextXAlignment.Right;
-			bar.Name = "bar";
-			bar.Parent = sliderr;
-			bar.BackgroundColor3 = Color3.fromRGB(200, 200, 200);
-			bar.Size = UDim2.new(0, 100, 0, 4);
-			bar.Position = UDim2.new(1, -10, 0.5, 0);
-			bar.BackgroundTransparency = 0.8;
-			bar.AnchorPoint = Vector2.new(1, 0.5);
-			bar1.Name = "bar1";
-			bar1.Parent = bar;
-			bar1.BackgroundColor3 = _G.Third;
-			bar1.BackgroundTransparency = 0;
-			bar1.Size = UDim2.new(set / max, 0, 0, 4);
-			bar1corner.CornerRadius = UDim.new(0, 5);
-			bar1corner.Name = "bar1corner";
-			bar1corner.Parent = bar1;
-			barcorner.CornerRadius = UDim.new(0, 5);
-			barcorner.Name = "barcorner";
-			barcorner.Parent = bar;
-			circlebar.Name = "circlebar";
-			circlebar.Parent = bar1;
-			circlebar.BackgroundColor3 = Color3.fromRGB(255, 255, 255);
-			circlebar.Position = UDim2.new(1, 0, 0, -5);
-			circlebar.AnchorPoint = Vector2.new(0.5, 0);
-			circlebar.Size = UDim2.new(0, 13, 0, 13);
-			UICorner.CornerRadius = UDim.new(0, 100);
-			UICorner.Parent = circlebar;
-			valuecorner.CornerRadius = UDim.new(0, 2);
-			valuecorner.Name = "valuecorner";
-			valuecorner.Parent = slidervalue;
-			local mouse = game.Players.LocalPlayer:GetMouse();
-			local uis = game:GetService("UserInputService");
-			if Value == nil then
-				Value = set;
-				pcall(function()
-					callback(Value);
-				end);
-			end;
-			local Dragging = false;
-			circlebar.InputBegan:Connect(function(Input)
-				if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
-					Dragging = true;
-				end;
-			end);
-			bar.InputBegan:Connect(function(Input)
-				if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
-					Dragging = true;
-				end;
-			end);
-			UserInputService.InputEnded:Connect(function(Input)
-				if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
-					Dragging = false;
-				end;
-			end);
-			UserInputService.InputChanged:Connect(function(Input)
-				if Dragging and (Input.UserInputType == Enum.UserInputType.MouseMovement or Input.UserInputType == Enum.UserInputType.Touch) then
-					Value = math.floor((tonumber(max) - tonumber(min)) / 100 * bar1.AbsoluteSize.X + tonumber(min)) or 0;
-					pcall(function()
-						callback(Value);
-					end);
-					ValueText.Text = Value;
-					bar1.Size = UDim2.new(0, math.clamp(Input.Position.X - bar1.AbsolutePosition.X, 0, 100), 0, 4);
-					circlebar.Position = UDim2.new(0, math.clamp(Input.Position.X - bar1.AbsolutePosition.X - 5, 0, 100), 0, -5);
-				end;
-			end);
-		end;
-		function main:Textbox(text, disappear, callback)
-			local Textbox = Instance.new("Frame");
-			local TextboxCorner = Instance.new("UICorner");
-			local TextboxLabel = Instance.new("TextLabel");
-			local RealTextbox = Instance.new("TextBox");
-			local UICorner = Instance.new("UICorner");
-			local TextBoxIcon = Instance.new("ImageLabel");
-			Textbox.Name = "Textbox";
-			Textbox.Parent = MainFramePage;
-			Textbox.BackgroundColor3 = _G.Primary;
-			Textbox.BackgroundTransparency = 0.8;
-			Textbox.Size = UDim2.new(1, 0, 0, 35);
-			TextboxCorner.CornerRadius = UDim.new(0, 5);
-			TextboxCorner.Name = "TextboxCorner";
-			TextboxCorner.Parent = Textbox;
-			TextboxLabel.Name = "TextboxLabel";
-			TextboxLabel.Parent = Textbox;
-			TextboxLabel.BackgroundColor3 = _G.Primary;
-			TextboxLabel.BackgroundTransparency = 1;
-			TextboxLabel.Position = UDim2.new(0, 15, 0.5, 0);
-			TextboxLabel.Text = text;
-			TextboxLabel.Size = UDim2.new(1, 0, 0, 35);
-			TextboxLabel.Font = Enum.Font.Nunito;
-			TextboxLabel.AnchorPoint = Vector2.new(0, 0.5);
-			TextboxLabel.TextColor3 = Color3.fromRGB(255, 255, 255);
-			TextboxLabel.TextSize = 15;
-			TextboxLabel.TextTransparency = 0;
-			TextboxLabel.TextXAlignment = Enum.TextXAlignment.Left;
-			RealTextbox.Name = "RealTextbox";
-			RealTextbox.Parent = Textbox;
-			RealTextbox.BackgroundColor3 = Color3.fromRGB(200, 200, 200);
-			RealTextbox.BackgroundTransparency = 0.8;
-			RealTextbox.Position = UDim2.new(1, -5, 0.5, 0);
-			RealTextbox.AnchorPoint = Vector2.new(1, 0.5);
-			RealTextbox.Size = UDim2.new(0, 80, 0, 25);
-			RealTextbox.Font = Enum.Font.Gotham;
-			RealTextbox.Text = "";
-			RealTextbox.TextColor3 = Color3.fromRGB(225, 225, 225);
-			RealTextbox.TextSize = 11;
-			RealTextbox.TextTransparency = 0;
-			RealTextbox.ClipsDescendants = true;
-			RealTextbox.FocusLost:Connect(function()
-				callback(RealTextbox.Text);
-			end);
-			UICorner.CornerRadius = UDim.new(0, 5);
-			UICorner.Parent = RealTextbox;
-		end;
-		function main:Label(text)
-			local Frame = Instance.new("Frame");
-			local Label = Instance.new("TextLabel");
-			local PaddingLabel = Instance.new("UIPadding");
-			local labelfunc = {};
-			Frame.Name = "Frame";
-			Frame.Parent = MainFramePage;
-			Frame.BackgroundColor3 = _G.Primary;
-			Frame.BackgroundTransparency = 1;
-			Frame.Size = UDim2.new(1, 0, 0, 30);
-			Label.Name = "Label";
-			Label.Parent = Frame;
-			Label.BackgroundColor3 = Color3.fromRGB(255, 255, 255);
-			Label.BackgroundTransparency = 1;
-			Label.Size = UDim2.new(1, -30, 0, 30);
-			Label.Font = Enum.Font.Nunito;
-			Label.Position = UDim2.new(0, 30, 0.5, 0);
-			Label.AnchorPoint = Vector2.new(0, 0.5);
-			Label.TextColor3 = Color3.fromRGB(225, 225, 225);
-			Label.TextSize = 15;
-			Label.Text = text;
-			Label.TextXAlignment = Enum.TextXAlignment.Left;
-			local ImageLabel = Instance.new("ImageLabel");
-			ImageLabel.Name = "ImageLabel";
-			ImageLabel.Parent = Frame;
-			ImageLabel.BackgroundColor3 = Color3.fromRGB(200, 200, 200);
-			ImageLabel.BackgroundTransparency = 1;
-			ImageLabel.ImageTransparency = 0;
-			ImageLabel.Position = UDim2.new(0, 10, 0.5, 0);
-			ImageLabel.Size = UDim2.new(0, 14, 0, 14);
-			ImageLabel.AnchorPoint = Vector2.new(0, 0.5);
-			ImageLabel.Image = "rbxassetid://10723415903";
-			ImageLabel.ImageColor3 = Color3.fromRGB(200, 200, 200);
-			function labelfunc:Set(newtext)
-				Label.Text = newtext;
-			end;
-			return labelfunc;
-		end;
-		function main:Seperator(text)
-			local Seperator = Instance.new("Frame");
-			local Sep1 = Instance.new("TextLabel");
-			local Sep2 = Instance.new("TextLabel");
-			local Sep3 = Instance.new("TextLabel");
-			local SepRadius = Instance.new("UICorner");
 
-			Seperator.Name = "Seperator";
-			Seperator.Parent = MainFramePage;
-			Seperator.BackgroundColor3 = _G.Primary;
-			Seperator.BackgroundTransparency = 1;
-			Seperator.Size = UDim2.new(1, 0, 0, 36);
+local function load_settings()
+    if isfile(file_name) then
+        local success, data = pcall(function()
+            return http_service:JSONDecode(readfile(file_name))
+        end)
+        
+        if success and type(data) == "table" then
+            for key, default_val in pairs(default_settings) do
+                _G[key] = (data[key] ~= nil) and data[key] or default_val
+            end
+            return
+        end
+    end
+    
+    for key, value in pairs(default_settings) do
+        _G[key] = value
+    end
+    save_settings()
+end
 
-			-- Sep1: Garis Kiri
-			Sep1.Name = "Sep1";
-			Sep1.Parent = Seperator;
-			Sep1.BackgroundColor3 = Color3.fromRGB(255, 255, 255);
-			Sep1.BackgroundTransparency = 0;
-			Sep1.AnchorPoint = Vector2.new(0, 0.5);
-			Sep1.Position = UDim2.new(0, 0, 0.5, 0);
-			Sep1.Size = UDim2.new(0.15, 0, 0, 1);
-			Sep1.BorderSizePixel = 0;
-			Sep1.Text = "";
-			local Grad1 = Instance.new("UIGradient");
-			Grad1.Color = ColorSequence.new({
-				ColorSequenceKeypoint.new(0, _G.Dark),
-				ColorSequenceKeypoint.new(0.4, _G.Primary),
-				ColorSequenceKeypoint.new(0.5, _G.Primary),
-				ColorSequenceKeypoint.new(0.6, _G.Primary),
-				ColorSequenceKeypoint.new(1, _G.Dark)
-			});
-			Grad1.Parent = Sep1;
+local function set_setting(name, value)
+    if default_settings[name] ~= nil then
+        _G[name] = value
+        save_settings()
+    end
+end
 
-			-- Sep2: Teks Tengah
-			Sep2.Name = "Sep2";
-			Sep2.Parent = Seperator;
-			Sep2.BackgroundColor3 = Color3.fromRGB(255, 255, 255);
-			Sep2.BackgroundTransparency = 1;
-			Sep2.AnchorPoint = Vector2.new(0.5, 0.5);
-			Sep2.Position = UDim2.new(0.5, 0, 0.5, 0);
-			Sep2.Size = UDim2.new(1, 0, 0, 36);
-			Sep2.Font = Enum.Font.GothamBold;
-			Sep2.Text = text;
-			Sep2.TextColor3 = Color3.fromRGB(255, 255, 255);
-			Sep2.TextSize = 14;
+load_settings()
 
-			-- Sep3: Garis Kanan
-			Sep3.Name = "Sep3";
-			Sep3.Parent = Seperator;
-			Sep3.BackgroundColor3 = Color3.fromRGB(255, 255, 255);
-			Sep3.BackgroundTransparency = 0;
-			Sep3.AnchorPoint = Vector2.new(1, 0.5);
-			Sep3.Position = UDim2.new(1, 0, 0.5, 0);
-			Sep3.Size = UDim2.new(0.15, 0, 0, 1);
-			Sep3.BorderSizePixel = 0;
-			Sep3.Text = "";
-			local Grad3 = Instance.new("UIGradient");
-			Grad3.Color = ColorSequence.new({
-				ColorSequenceKeypoint.new(0, _G.Dark),
-				ColorSequenceKeypoint.new(0.4, _G.Primary),
-				ColorSequenceKeypoint.new(0.5, _G.Primary),
-				ColorSequenceKeypoint.new(0.6, _G.Primary),
-				ColorSequenceKeypoint.new(1, _G.Dark)
-			});
-			Grad3.Parent = Sep3;
-		end;
-		function main:Line()
-			local Linee = Instance.new("Frame");
-			local Line = Instance.new("Frame");
-			local UIGradient = Instance.new("UIGradient");
-			Linee.Name = "Linee";
-			Linee.Parent = MainFramePage;
-			Linee.BackgroundColor3 = Color3.fromRGB(255, 255, 255);
-			Linee.BackgroundTransparency = 1;
-			Linee.Position = UDim2.new(0, 0, 0.119999997, 0);
-			Linee.Size = UDim2.new(1, 0, 0, 20);
-			Line.Name = "Line";
-			Line.Parent = Linee;
-			Line.BackgroundColor3 = Color3.new(125, 125, 125);
-			Line.BorderSizePixel = 0;
-			Line.Position = UDim2.new(0, 0, 0, 10);
-			Line.Size = UDim2.new(1, 0, 0, 1);
-			UIGradient.Color = ColorSequence.new({
-				ColorSequenceKeypoint.new(0, _G.Dark),
-				ColorSequenceKeypoint.new(0.4, _G.Primary),
-				ColorSequenceKeypoint.new(0.5, _G.Primary),
-				ColorSequenceKeypoint.new(0.6, _G.Primary),
-				ColorSequenceKeypoint.new(1, _G.Dark)
-			});
-			UIGradient.Parent = Line;
-		end;
-        function main:Box(titleText, boxSize)
-            local BoxFrame = Instance.new("Frame")
-            local BoxCorner = Instance.new("UICorner")
-            local Title = Instance.new("TextLabel")
-            local Container = Instance.new("ScrollingFrame")
-            local ListLayout = Instance.new("UIListLayout")
-            local Padding = Instance.new("UIPadding")
-            BoxFrame.Name = "LoggerBox"
-            BoxFrame.Parent = MainFramePage
-            BoxFrame.BackgroundColor3 = _G.Primary
-            BoxFrame.BackgroundTransparency = 0.8
-            BoxFrame.Position = UDim2.new(0, 0, 0, 0)
-            BoxFrame.Size = boxSize
-            BoxCorner.CornerRadius = UDim.new(0, 5)
-            BoxCorner.Parent = BoxFrame
-            Title.Name = "BoxTitle"
-            Title.Parent = BoxFrame
-            Title.BackgroundTransparency = 1
-            Title.Position = UDim2.new(0, 10, 0, 5)
-            Title.Size = UDim2.new(1, -20, 0, 20)
-            Title.Font = Enum.Font.GothamBold
-            Title.Text = titleText or "LOGS"
-            Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-            Title.TextSize = 12
-            Title.TextXAlignment = Enum.TextXAlignment.Left
-            Container.Name = "LogContainer"
-            Container.Parent = BoxFrame
-            Container.BackgroundTransparency = 1
-            Container.Position = UDim2.new(0, 5, 0, 25)
-            Container.Size = UDim2.new(1, -10, 1, -30)
-            Container.CanvasSize = UDim2.new(0, 0, 0, 0)
-            Container.ScrollBarThickness = 2
-            Container.AutomaticCanvasSize = Enum.AutomaticSize.Y
-            ListLayout.Parent = Container
-            ListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-            ListLayout.Padding = UDim.new(0, 2)
-            Padding.Parent = Container
-            Padding.PaddingLeft = UDim.new(0, 5)
-            function main:Log(message)
-                local LogLabel = Instance.new("TextLabel")
-                LogLabel.Parent = Container
-                LogLabel.BackgroundTransparency = 1
-                LogLabel.Size = UDim2.new(1, 0, 0, 18)
-                LogLabel.Font = Enum.Font.Code
-                LogLabel.Text = "> " .. tostring(message)
-                LogLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-                LogLabel.TextSize = 12
-                LogLabel.TextXAlignment = Enum.TextXAlignment.Left
+-- // for calculating path
+local function find_path()
+    local map_folder = workspace:FindFirstChild("Map")
+    if not map_folder then return nil end
+    local paths_folder = map_folder:FindFirstChild("Paths")
+    if not paths_folder then return nil end
+    local path_folder = paths_folder:GetChildren()[1]
+    if not path_folder then return nil end
+    
+    local path_nodes = {}
+    for _, node in ipairs(path_folder:GetChildren()) do
+        if node:IsA("BasePart") then
+            table.insert(path_nodes, node)
+        end
+    end
+    
+    table.sort(path_nodes, function(a, b)
+        local num_a = tonumber(a.Name:match("%d+"))
+        local num_b = tonumber(b.Name:match("%d+"))
+        if num_a and num_b then return num_a < num_b end
+        return a.Name < b.Name
+    end)
+    
+    return path_nodes
+end
+
+local function total_length(path_nodes)
+    local total_length = 0
+    for i = 1, #path_nodes - 1 do
+        total_length = total_length + (path_nodes[i + 1].Position - path_nodes[i].Position).Magnitude
+    end
+    return total_length
+end
+
+local MercenarySlider
+local MilitarySlider
+
+local function calc_length()
+    local map = workspace:FindFirstChild("Map")
+    
+    if game_state == "GAME" and map then
+        local path_nodes = find_path()
+        
+        if path_nodes and #path_nodes > 0 then
+            max_path_distance = total_length(path_nodes)
+            
+            if MercenarySlider then
+                MercenarySlider:SetMax(max_path_distance) 
+            end
+            
+            if MilitarySlider then
+                MilitarySlider:SetMax(max_path_distance)
+            end
+            return true
+        end
+    end
+    return false
+end
+
+local function get_point_at_distance(path_nodes, distance)
+    if not path_nodes or #path_nodes < 2 then return nil end
+    
+    local current_dist = 0
+    for i = 1, #path_nodes - 1 do
+        local start_pos = path_nodes[i].Position
+        local end_pos = path_nodes[i+1].Position
+        local segment_len = (end_pos - start_pos).Magnitude
+        
+        if current_dist + segment_len >= distance then
+            local remaining = distance - current_dist
+            local direction = (end_pos - start_pos).Unit
+            return start_pos + (direction * remaining)
+        end
+        current_dist = current_dist + segment_len
+    end
+    return path_nodes[#path_nodes].Position
+end
+
+local function update_path_visuals()
+    if not _G.PathVisuals then
+        if mil_marker then 
+            mil_marker:Destroy() 
+            mil_marker = nil 
+        end
+        if merc_marker then 
+            merc_marker:Destroy() 
+            merc_marker = nil 
+        end
+        return
+    end
+
+    local path_nodes = find_path()
+    if not path_nodes then return end
+
+    if not mil_marker then
+        mil_marker = Instance.new("Part")
+        mil_marker.Name = "MilVisual"
+        mil_marker.Shape = Enum.PartType.Cylinder
+        mil_marker.Size = Vector3.new(0.3, 3, 3)
+        mil_marker.Color = Color3.fromRGB(0, 255, 0)
+        mil_marker.Material = Enum.Material.Plastic
+        mil_marker.Anchored = true
+        mil_marker.CanCollide = false
+        mil_marker.Orientation = Vector3.new(0, 0, 90)
+        mil_marker.Parent = workspace
+    end
+
+    if not merc_marker then
+        merc_marker = mil_marker:Clone()
+        merc_marker.Name = "MercVisual"
+        merc_marker.Color = Color3.fromRGB(255, 0, 0)
+        merc_marker.Parent = workspace
+    end
+
+    local mil_pos = get_point_at_distance(path_nodes, _G.MilitaryPath or 0)
+    local merc_pos = get_point_at_distance(path_nodes, _G.MercenaryPath or 0)
+
+    if mil_pos then
+        mil_marker.Position = mil_pos + Vector3.new(0, 0.2, 0)
+        mil_marker.Transparency = 0.7
+    end
+    if merc_pos then
+        merc_marker.Position = merc_pos + Vector3.new(0, 0.2, 0)
+        merc_marker.Transparency = 0.7
+    end
+end
+
+local function record_action(command_str)
+    if not _G.record_strat then return end
+    if appendfile then
+        appendfile("Strat.txt", command_str .. "\n")
+    end
+end
+
+function TDS:Addons()
+    local url = "https://api.jnkie.com/api/v1/luascripts/public/57fe397f76043ce06afad24f07528c9f93e97730930242f57134d0b60a2d250b/download"
+    local success, code = pcall(game.HttpGet, game, url)
+
+    if not success then
+        return false
+    end
+
+    loadstring(code)()
+
+    while not (TDS.MultiMode and TDS.Multiplayer) do
+        task.wait(0.1)
+    end
+
+    local original_equip = TDS.Equip
+    TDS.Equip = function(...)
+        if game_state == "GAME" then
+            return original_equip(...)
+        end
+    end
+
+    return true
+end
+
+local function get_equipped_towers()
+    local towers = {}
+    local state_replicators = replicated_storage:FindFirstChild("StateReplicators")
+
+    if state_replicators then
+        for _, folder in ipairs(state_replicators:GetChildren()) do
+            if folder.Name == "PlayerReplicator" and folder:GetAttribute("UserId") == local_player.UserId then
+                local equipped = folder:GetAttribute("EquippedTowers")
+                if type(equipped) == "string" then
+                    local cleaned_json = equipped:match("%[.*%]") 
+                    local success, tower_table = pcall(function()
+                        return http_service:JSONDecode(cleaned_json)
+                    end)
+
+                    if success and type(tower_table) == "table" then
+                        for i = 1, 5 do
+                            if tower_table[i] then
+                                table.insert(towers, tower_table[i])
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+    return #towers > 0 and towers or {"None"}
+end
+
+current_equipped_towers = get_equipped_towers()
+
+-- // ui
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/DuxiiT/auto-strat/refs/heads/main/Sources/UI.lua"))()
+
+local Window = Library:Window({
+    Title = "ADS",
+    Desc = "AFK Defense Simulator",
+    Theme = "Dark",
+    DiscordLink = "https://discord.gg/autostrat",
+    Icon = 105059922903197,
+    Config = {
+        Keybind = Enum.KeyCode.LeftControl,
+        Size = UDim2.new(0, 500, 0, 400)
+    }
+})
+
+local Main = Window:Tab({Title = "Main", Icon = "star"}) do
+    Main:Section({Title = "Main"})
+
+    local TowerDropdown = Main:Dropdown({
+        Title = "Tower:",
+        List = current_equipped_towers,
+        Value = current_equipped_towers[1],
+        Callback = function(choice)
+            selected_tower = choice
+        end
+    })
+
+    local function refresh_dropdown()
+        local new_towers = get_equipped_towers()
+        if table.concat(new_towers, ",") ~= table.concat(current_equipped_towers, ",") then
+            TowerDropdown:Clear() 
+            
+            for _, tower_name in ipairs(new_towers) do
+                TowerDropdown:Add(tower_name)
+            end
+            
+            current_equipped_towers = new_towers
+        end
+    end
+
+    task.spawn(function()
+        while task.wait(2) do
+            refresh_dropdown()
+        end
+    end)
+
+    Main:Toggle({
+        Title = "Stack Tower",
+        Desc = "Enables Stacking placement",
+        Value = false,
+        Callback = function(v)
+            stack_enabled = v
+
+            if stack_enabled then
+                Window:Notify({
+                    Title = "ADS",
+                    Desc = "Make sure not to equip the tower, only select it and then place where you want to!",
+                    Time = 5,
+                    Type = "normal"
+                })
+            end
+        end
+    })
+
+    Main:Button({
+        Title = "Upgrade Selected",
+        Desc = "",
+        Callback = function()
+            if selected_tower then
+                for _, v in pairs(workspace.Towers:GetChildren()) do
+                    if v:FindFirstChild("TowerReplicator") and v.TowerReplicator:GetAttribute("Name") == selected_tower and v.TowerReplicator:GetAttribute("OwnerId") == local_player.UserId then
+                        remote_func:InvokeServer("Troops", "Upgrade", "Set", {Troop = v})
+                    end
+                end
+                Window:Notify({
+                    Title = "ADS",
+                    Desc = "Attempted to upgrade all the selected towers!",
+                    Time = 3,
+                    Type = "normal"
+                })
+            end
+        end
+    })
+
+    Main:Button({
+        Title = "Sell Selected",
+        Desc = "",
+        Callback = function()
+            if selected_tower then
+                for _, v in pairs(workspace.Towers:GetChildren()) do
+                    if v:FindFirstChild("TowerReplicator") and v.TowerReplicator:GetAttribute("Name") == selected_tower and v.TowerReplicator:GetAttribute("OwnerId") == local_player.UserId then
+                        remote_func:InvokeServer("Troops", "Sell", {Troop = v})
+                    end
+                end
+                Window:Notify({
+                    Title = "ADS",
+                    Desc = "Attempted to sell all the selected towers!",
+                    Time = 3,
+                    Type = "normal"
+                })
+            end
+        end
+    })
+
+    Main:Button({
+        Title = "Upgrade All",
+        Desc = "",
+        Callback = function()
+            for _, v in pairs(workspace.Towers:GetChildren()) do
+                if v:FindFirstChild("Owner") and v.Owner.Value == local_player.UserId then
+                    remote_func:InvokeServer("Troops", "Upgrade", "Set", {Troop = v})
+                end
+            end
+            Window:Notify({
+                Title = "ADS",
+                Desc = "Attempted to upgrade all the towers!",
+                Time = 3,
+                Type = "normal"
+            })
+        end
+    })
+
+    Main:Button({
+        Title = "Sell All",
+        Desc = "",
+        Callback = function()
+            for _, v in pairs(workspace.Towers:GetChildren()) do
+                if v:FindFirstChild("Owner") and v.Owner.Value == local_player.UserId then
+                    remote_func:InvokeServer("Troops", "Sell", {Troop = v})
+                end
+            end
+
+            Window:Notify({
+                Title = "ADS",
+                Desc = "Attempted to sell all the towers!",
+                Time = 3,
+                Type = "normal"
+            })
+        end
+    })
+
+    Main:Section({Title = "Equipper"})
+    Main:Textbox({
+        Title = "Equip:",
+        Desc = "",
+        Placeholder = "",
+        Value = "",
+        ClearTextOnFocus = false,
+        Callback = function(text)
+            if text == "" or text == nil then return end
+            task.spawn(function()
+                if not TDS.Equip then
+                    Window:Notify({
+                        Title = "ADS",
+                        Desc = "Waiting for Key System to finish...",
+                        Time = 3,
+                        Type = "normal"
+                    })
+                    repeat 
+                        task.wait(0.5) 
+                    until TDS.Equip
+                end
                 
-                Container.CanvasPosition = Vector2.new(0, 9999)
-            end;
-            function main:Clear()
-                for _, child in pairs(Container:GetChildren()) do
+                local success, err = pcall(function()
+                    TDS:Equip(tostring(text))
+                end)
+
+                if success then
+                    Window:Notify({
+                        Title = "ADS",
+                        Desc = "Successfully equipped: " .. tostring(text),
+                        Time = 3,
+                        Type = "normal"
+                    })
+                end
+            end)
+        end
+    })
+
+    Main:Button({
+        Title = "Unlock Equipper",
+        Desc = "",
+        Callback = function()
+            task.spawn(function()
+                Window:Notify({
+                    Title = "ADS",
+                    Desc = "Loading Key System...",
+                    Time = 3,
+                    Type = "normal"
+                })
+                local success = TDS:Addons()
+                
+                if success then
+                    Window:Notify({
+                        Title = "ADS",
+                        Desc = "Addons Loaded! You can now equip towers.",
+                        Time = 3,
+                        Type = "normal"
+                    })
+                end
+            end)
+        end
+    })
+
+    Main:Section({Title = "Quality of life"})
+    Main:Toggle({
+        Title = "Auto Skip Waves",
+        Desc = "Skips all Waves",
+        Value = _G.AutoSkip,
+        Callback = function(v)
+            set_setting("AutoSkip", v)
+        end
+    })
+
+    Main:Toggle({
+        Title = "Auto Chain",
+        Desc = "Chains Commander Ability",
+        Value = _G.AutoChain,
+        Callback = function(v)
+            set_setting("AutoChain", v)
+        end
+    })
+
+    Main:Toggle({
+        Title = "Auto DJ Booth",
+        Desc = "Uses DJ Booth Ability",
+        Value = _G.AutoDJ,
+        Callback = function(v)
+            set_setting("AutoDJ", v)
+        end
+    })
+
+    Main:Toggle({
+        Title = "Auto Rejoin Lobby",
+        Desc = "Teleports back to lobby after you've won automatically",
+        Value = _G.AutoRejoin,
+        Callback = function(v)
+            set_setting("AutoRejoin", v)
+        end
+    })
+
+    Main:Section({Title = "Farm"})
+    Main:Toggle({
+        Title = "Sell Farms",
+        Desc = "Sells all your farms on the specified wave",
+        Value = _G.SellFarms,
+        Callback = function(v)
+            set_setting("SellFarms", v)
+        end
+    })
+
+    Main:Textbox({
+        Title = "Wave:",
+        Desc = "Wave to sell farms",
+        Placeholder = "40",
+        Value = tostring(_G.SellFarmsWave),
+        ClearTextOnFocus = false,
+        Callback = function(text)
+            local number = tonumber(text)
+            if number then
+                set_setting("SellFarmsWave", number)
+            else
+                Window:Notify({
+                    Title = "ADS",
+                    Desc = "Invalid number entered!",
+                    Time = 3,
+                    Type = "error"
+                })
+            end
+        end
+    })
+
+    Main:Section({Title = "Abilities"})
+    Main:Toggle({
+        Title = "Enable Path Distance Marker",
+        Desc = "Red = Mercenary Base, Green = Military Baset",
+        Value = _G.PathVisuals,
+        Callback = function(v)
+            set_setting("PathVisuals", v)
+        end
+    })
+
+    Main:Toggle({
+        Title = "Auto Mercenary Base",
+        Desc = "Uses Air-Drop Ability",
+        Value = _G.AutoMercenary,
+        Callback = function(v)
+            set_setting("AutoMercenary", v)
+        end
+    })
+
+    MercenarySlider = Main:Slider({
+        Title = "Path Distance",
+        Min = 0,
+        Max = 300,
+        Rounding = 0,
+        Value = _G.MercenaryPath,
+        Callback = function(val)
+            set_setting("MercenaryPath", val)
+        end
+    })
+
+    Main:Toggle({
+        Title = "Auto Military Base",
+        Desc = "Uses Airstrike Ability",
+        Value = _G.AutoMilitary,
+        Callback = function(v)
+            set_setting("AutoMilitary", v)
+        end
+    })
+
+    MilitarySlider = Main:Slider({
+        Title = "Path Distance",
+        Min = 0,
+        Max = 300,
+        Rounding = 0,
+        Value = _G.MilitaryPath,
+        Callback = function(val)
+            set_setting("MilitaryPath", val)
+        end
+    })
+
+    task.spawn(function()
+        while true do
+            local success = calc_length()
+            if success then break end 
+            task.wait(3)
+        end
+    end)
+end
+
+Window:Line()
+
+local Logger
+
+local Logger = Window:Tab({Title = "Logger", Icon = "notebook-pen"}) do
+    Logger = Logger:CreateLogger({
+        Title = "STRATEGY LOGGER:",
+        Size = UDim2.new(0, 330, 0, 300)
+    })
+end
+
+Window:Line()
+
+local RecorderTab = Window:Tab({Title = "Recorder", Icon = "camera"}) do
+    local Recorder = RecorderTab:CreateLogger({
+        Title = "RECORDER:",
+        Size = UDim2.new(0, 330, 0, 230)
+    })
+
+    RecorderTab:Button({
+        Title = "START",
+        Desc = "",
+        Callback = function()
+            Recorder:Clear()
+            Recorder:Log("Recorder started")
+
+            local current_mode = "Unknown"
+            local current_map = "Unknown"
+            
+            local state_folder = replicated_storage:FindFirstChild("State")
+            if state_folder then
+                current_mode = state_folder.Difficulty.Value
+                current_map = state_folder.Map.Value
+            end
+
+            local tower1, tower2, tower3, tower4, tower5 = "None", "None", "None", "None", "None"
+            local current_modifiers = "" 
+            local state_replicators = replicated_storage:FindFirstChild("StateReplicators")
+
+            if state_replicators then
+                for _, folder in ipairs(state_replicators:GetChildren()) do
+                    if folder.Name == "PlayerReplicator" and folder:GetAttribute("UserId") == local_player.UserId then
+                        local equipped = folder:GetAttribute("EquippedTowers")
+                        if type(equipped) == "string" then
+                            local cleaned_json = equipped:match("%[.*%]") 
+                            
+                            local success, tower_table = pcall(function()
+                                return http_service:JSONDecode(cleaned_json)
+                            end)
+
+                            if success and type(tower_table) == "table" then
+                                tower1 = tower_table[1] or "None"
+                                tower2 = tower_table[2] or "None"
+                                tower3 = tower_table[3] or "None"
+                                tower4 = tower_table[4] or "None"
+                                tower5 = tower_table[5] or "None"
+                            end
+                        end
+                    end
+
+                    if folder.Name == "ModifierReplicator" then
+                        local raw_votes = folder:GetAttribute("Votes")
+                        if type(raw_votes) == "string" then
+                            local cleaned_json = raw_votes:match("{.*}") 
+                            
+                            local success, mod_table = pcall(function()
+                                return http_service:JSONDecode(cleaned_json)
+                            end)
+
+                            if success and type(mod_table) == "table" then
+                                local mods = {}
+                                for mod_name, _ in pairs(mod_table) do
+                                    table.insert(mods, mod_name .. " = true")
+                                end
+                                current_modifiers = table.concat(mods, ", ")
+                            end
+                        end
+                    end
+                end
+            end
+
+            Recorder:Log("Mode: " .. current_mode)
+            Recorder:Log("Map: " .. current_map)
+            Recorder:Log("Towers: " .. tower1 .. ", " .. tower2)
+            Recorder:Log(tower3 .. ", " .. tower4 .. ", " .. tower5)
+
+            _G.record_strat = true
+
+            if writefile then 
+                local config_header = string.format([[
+local TDS = loadstring(game:HttpGet("https://raw.githubusercontent.com/DuxiiT/auto-strat/refs/heads/main/Library.lua"))()
+
+TDS:Loadout("%s", "%s", "%s", "%s", "%s")
+TDS:Mode("%s")
+TDS:GameInfo("%s", {%s})
+
+]], tower1, tower2, tower3, tower4, tower5, current_mode, current_map, current_modifiers)
+
+                writefile("Strat.txt", config_header)
+            end
+
+
+
+            Window:Notify({
+                Title = "ADS",
+                Desc = "Recorder has started, you may place down your towers now.",
+                Time = 3,
+                Type = "normal"
+            })
+        end
+    })
+
+    RecorderTab:Button({
+        Title = "STOP",
+        Desc = "",
+        Callback = function()
+            _G.record_strat = false
+            Recorder:Clear()
+            Recorder:Log("Strategy saved, you may find it in \nyour workspace folder called 'Strat.txt'")
+            Window:Notify({
+                Title = "ADS",
+                Desc = "Recording has been saved! Check your workspace folder for Strat.txt",
+                Time = 3,
+                Type = "normal"
+            })
+        end
+    })
+
+    if game_state == "GAME" then
+        local towers_folder = workspace:WaitForChild("Towers", 5)
+
+        towers_folder.ChildAdded:Connect(function(tower)
+            if not _G.record_strat then return end
+            
+            local replicator = tower:WaitForChild("TowerReplicator", 5)
+            if not replicator then return end
+
+            local owner_id = replicator:GetAttribute("OwnerId")
+            if owner_id and owner_id ~= local_player.UserId then return end
+
+            tower_count = tower_count + 1
+            local my_index = tower_count
+            spawned_towers[tower] = my_index
+
+            local tower_name = replicator:GetAttribute("Name") or tower.Name
+            local raw_pos = replicator:GetAttribute("Position")
+            
+            local pos_x, pos_y, pos_z
+            if typeof(raw_pos) == "Vector3" then
+                pos_x, pos_y, pos_z = raw_pos.X, raw_pos.Y, raw_pos.Z
+            else
+                local p = tower:GetPivot().Position
+                pos_x, pos_y, pos_z = p.X, p.Y, p.Z
+            end
+            
+            local command = string.format('TDS:Place("%s", %.3f, %.3f, %.3f)', tower_name, pos_x, pos_y, pos_z)
+            record_action(command)
+            Recorder:Log("Placed " .. tower_name .. " (Index: " .. my_index .. ")")
+
+            replicator:GetAttributeChangedSignal("Upgrade"):Connect(function()
+                if not _G.record_strat then return end
+                record_action(string.format('TDS:Upgrade(%d)', my_index))
+                Recorder:Log("Upgraded Tower " .. my_index)
+            end)
+        end)
+
+        towers_folder.ChildRemoved:Connect(function(tower)
+            if not _G.record_strat then return end
+            
+            local my_index = spawned_towers[tower]
+            if my_index then
+                record_action(string.format('TDS:Sell(%d)', my_index))
+                Recorder:Log("Sold Tower " .. my_index)
+                
+                spawned_towers[tower] = nil
+            end
+        end)
+    end
+end
+
+Window:Line()
+
+local Strategies = Window:Tab({Title = "Strategies", Icon = "newspaper"}) do
+    Strategies:Section({Title = "Survival Strategies"})
+    Strategies:Toggle({
+        Title = "Frost Mode",
+        Desc = "Skill tree: MAX\n\nTowers:\nGolden Scout,\nFirework Technician,\nHacker,\nBrawler,\nDJ Booth,\nCommander,\nEngineer,\nAccelerator,\nTurret,\nMercenary Base",
+        Value = _G.Frost,
+        Callback = function(v)
+            set_setting("Frost", v)
+
+            if v then
+                 task.spawn(function()
+                    local url = "https://raw.githubusercontent.com/DuxiiT/auto-strat/refs/heads/main/Strategies/Frost.lua"
+                    local content = game:HttpGet(url)
+                    
+                    while not (TDS and TDS.Loadout) do
+                        task.wait(0.5) 
+                    end
+                    
+                    local func, err = loadstring(content)
+                    if func then
+                        func() 
+                        Window:Notify({ Title = "ADS", Desc = "Running...", Time = 3 })
+                    end
+                end)
+            end
+        end
+    })
+
+    Strategies:Toggle({
+        Title = "Fallen Mode",
+        Desc = "Skill tree: MAX\n\nTowers:\nGolden Scout,\nBrawler,\nMercenary Base,\nElectroshocker,\nEngineer",
+        Value = _G.Fallen,
+        Callback = function(v)
+            set_setting("Fallen", v)
+
+            if v then
+                task.spawn(function()
+                    local url = "https://raw.githubusercontent.com/DuxiiT/auto-strat/refs/heads/main/Strategies/Fallen.lua"
+                    local content = game:HttpGet(url)
+                    
+                    while not (TDS and TDS.Loadout) do
+                        task.wait(0.5) 
+                    end
+                    
+                    local func, err = loadstring(content)
+                    if func then
+                        func() 
+                        Window:Notify({ Title = "ADS", Desc = "Running...", Time = 3 })
+                    end
+                end)
+            end
+        end
+    })
+
+    Strategies:Toggle({
+        Title = "Easy Mode",
+        Desc = "Skill tree: Not needed\n\nTowers:\nNormal Scout",
+        Value = _G.Easy,
+        Callback = function(v)
+            set_setting("Easy", v)
+
+            if v then
+                task.spawn(function()
+                    local url = "https://raw.githubusercontent.com/DuxiiT/auto-strat/refs/heads/main/Strategies/Easy.lua"
+                    local content = game:HttpGet(url)
+                    
+                    while not (TDS and TDS.Loadout) do
+                        task.wait(0.5) 
+                    end
+                    
+                    local func, err = loadstring(content)
+                    if func then
+                        func() 
+                        Window:Notify({ Title = "ADS", Desc = "Running...", Time = 3 })
+                    end
+                end)
+            end
+        end
+    })
+end
+
+Window:Line()
+
+local Misc = Window:Tab({Title = "Misc", Icon = "box"}) do
+    Misc:Section({Title = "Misc"})
+    Misc:Toggle({
+        Title = "Enable Anti-Lag",
+        Desc = "Boosts your FPS",
+        Value = _G.AntiLag,
+        Callback = function(v)
+            set_setting("AntiLag", v)
+        end
+    })
+
+    Misc:Toggle({
+        Title = "Auto Collect Pickups",
+        Desc = "Collects Logbooks + Snowballs",
+        Value = _G.AutoPickups,
+        Callback = function(v)
+            set_setting("AutoPickups", v)
+        end
+    })
+
+    Misc:Toggle({
+        Title = "Claim Rewards",
+        Desc = "Claims your playtime and uses spin tickets in Lobby",
+        Value = _G.ClaimRewards,
+        Callback = function(v)
+            set_setting("ClaimRewards", v)
+        end
+    })
+
+    Misc:Section({Title = "Miscellaneous"})
+    Misc:Textbox({
+        Title = "Cooldown:",
+        Desc = "",
+        Placeholder = "0.01",
+        Value = _G.Cooldown,
+        ClearTextOnFocus = true,
+        Callback = function(value)
+            if value ~= 0 then
+                set_setting("Cooldown", value)
+            end
+        end
+    })
+
+    Misc:Textbox({
+        Title = "Multiply:",
+        Desc = "",
+        Placeholder = "60",
+        Value = _G.Multiply,
+        ClearTextOnFocus = true,
+        Callback = function(value)
+            if value ~= 0 then
+                set_setting("Multiply", value)
+            end
+        end
+    })
+
+    Misc:Button({
+        Title = "Apply Gatling",
+        Callback = function()
+            if hookmetamethod then
+                Window:Notify({
+                    Title = "ADS",
+                    Desc = "Successfully applied Gatling Gun Settings",
+                    Time = 3,
+                    Type = "normal"
+                })
+
+                local ggchannel = require(game.ReplicatedStorage.Resources.Universal.NewNetwork).Channel("GatlingGun")
+                local gganim = require(game.ReplicatedStorage.Content.Tower["Gatling Gun"].Animator)
+                
+                gganim._fireGun = function(self)
+                    local cam = require(game.ReplicatedStorage.Content.Tower["Gatling Gun"].Animator.CameraController)
+                    local pos = cam.result and cam.result.Position or cam.position
+                    
+                    for i = 1, _G.Multiply do
+                        ggchannel:fireServer("Fire", pos, workspace:GetAttribute("Sync"), workspace:GetServerTimeNow())
+                    end
+                    
+                    self:Wait(_G.Cooldown)
+                end
+            else
+                Window:Notify({
+                    Title = "ADS",
+                    Desc = "Your executor is not supported, please use a different one!",
+                    Time = 3,
+                    Type = "normal"
+                })
+            end
+        end
+    })
+
+    Misc:Section({Title = "Experimental"})
+    Misc:Toggle({
+        Title = "Sticker Spam",
+        Desc = "This will drop your FPS and everyone elses FPS to like 5.",
+        Value = false,
+        Callback = function(v)
+            sticker_spam = v
+            
+            if sticker_spam then
+                task.spawn(function()
+                    while sticker_spam do
+                        for i = 1, 100 do
+                            if not sticker_spam then break end
+                            
+                            local args = {"Flex"}
+                            game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("Sticker"):WaitForChild("URE:Show"):FireServer(unpack(args))
+                        end
+                        task.wait()
+                    end
+                end)
+            end
+        end
+    })
+
+    Misc:Section({Title = "Webhook"})
+    Misc:Toggle({
+        Title = "Send Webhook",
+        Desc = "",
+        Value = _G.SendWebhook,
+        Callback = function(v)
+            set_setting("SendWebhook", v)
+        end
+    })
+
+    Misc:Textbox({
+        Title = "Webhook URL:",
+        Desc = "",
+        Placeholder = "https://discord.com/api/webhooks/...",
+        Value = _G.WebhookURL,
+        ClearTextOnFocus = true,
+        Callback = function(value)
+            if value ~= "" and value:find("https://discord.com/api/webhooks/") then
+                set_setting("WebhookURL", value)
+                
+                Window:Notify({
+                    Title = "ADS",
+                    Desc = "Webhook is successfully set!",
+                    Time = 3,
+                    Type = "normal"
+                })
+            else
+                Window:Notify({
+                    Title = "ADS",
+                    Desc = "Invalid Webhook URL!",
+                    Time = 3,
+                    Type = "normal"
+                })
+            end
+        end
+    })
+end
+
+Window:Line()
+
+local Settings = Window:Tab({Title = "Settings", Icon = "settings"}) do
+    Settings:Section({Title = "Settings"})
+    Settings:Button({
+        Title = "Save Settings",
+        Callback = function()
+            Window:Notify({
+                    Title = "ADS",
+                    Desc = "Settings Saved!",
+                    Time = 3,
+                    Type = "normal"
+                })
+            load_settings()
+        end
+    })
+
+    Settings:Button({
+        Title = "Load Settings",
+        Callback = function()
+            Window:Notify({
+                    Title = "ADS",
+                    Desc = "Settings Loaded!",
+                    Time = 3,
+                    Type = "normal"
+                })
+            save_settings()
+        end
+    })
+end
+
+run_service.RenderStepped:Connect(function()
+    if stack_enabled then
+        if not stack_sphere then
+            stack_sphere = Instance.new("Part")
+            stack_sphere.Shape = Enum.PartType.Ball
+            stack_sphere.Size = Vector3.new(1.5, 1.5, 1.5)
+            stack_sphere.Color = Color3.fromRGB(0, 255, 0)
+            stack_sphere.Transparency = 0.5
+            stack_sphere.Anchored = true
+            stack_sphere.CanCollide = false
+            stack_sphere.Material = Enum.Material.Neon
+            stack_sphere.Parent = workspace
+            mouse.TargetFilter = stack_sphere
+        end
+        local hit = mouse.Hit
+        if hit then stack_sphere.Position = hit.Position end
+    elseif stack_sphere then
+        stack_sphere:Destroy()
+        stack_sphere = nil
+    end
+
+    update_path_visuals()
+end)
+
+mouse.Button1Down:Connect(function()
+    if stack_enabled and stack_sphere and selected_tower then
+        local pos = stack_sphere.Position
+        local newpos = Vector3.new(pos.X, pos.Y + 25, pos.Z)
+        remote_func:InvokeServer("Troops", "Pl\208\176ce", {Rotation = CFrame.new(), Position = newpos}, selected_tower)
+    end
+end)
+
+-- // currency tracking
+local start_coins, current_total_coins, start_gems, current_total_gems = 0, 0, 0, 0
+if game_state == "GAME" then
+    pcall(function()
+        repeat task.wait(1) until local_player:FindFirstChild("Coins")
+        start_coins = local_player.Coins.Value
+        current_total_coins = start_coins
+        start_gems = local_player.Gems.Value
+        current_total_gems = start_gems
+    end)
+end
+
+-- // check if remote returned valid
+local function check_res_ok(data)
+    if data == true then return true end
+    if type(data) == "table" and data.Success == true then return true end
+
+    local success, is_model = pcall(function()
+        return data and data:IsA("Model")
+    end)
+    
+    if success and is_model then return true end
+    if type(data) == "userdata" then return true end
+
+    return false
+end
+
+-- // scrap ui for match data
+local function get_all_rewards()
+    local results = {
+        Coins = 0, 
+        Gems = 0, 
+        XP = 0, 
+        Wave = 0,
+        Level = 0,
+        Time = "00:00",
+        Status = "UNKNOWN",
+        Others = {} 
+    }
+    
+    local ui_root = player_gui:FindFirstChild("ReactGameNewRewards")
+    local main_frame = ui_root and ui_root:FindFirstChild("Frame")
+    local game_over = main_frame and main_frame:FindFirstChild("gameOver")
+    local rewards_screen = game_over and game_over:FindFirstChild("RewardsScreen")
+    
+    local game_stats = rewards_screen and rewards_screen:FindFirstChild("gameStats")
+    local stats_list = game_stats and game_stats:FindFirstChild("stats")
+    
+    if stats_list then
+        for _, frame in ipairs(stats_list:GetChildren()) do
+            local l1 = frame:FindFirstChild("textLabel")
+            local l2 = frame:FindFirstChild("textLabel2")
+            if l1 and l2 and l1.Text:find("Time Completed:") then
+                results.Time = l2.Text
+                break
+            end
+        end
+    end
+
+    local top_banner = rewards_screen and rewards_screen:FindFirstChild("RewardBanner")
+    if top_banner and top_banner:FindFirstChild("textLabel") then
+        local txt = top_banner.textLabel.Text:upper()
+        results.Status = txt:find("TRIUMPH") and "WIN" or (txt:find("LOST") and "LOSS" or "UNKNOWN")
+    end
+
+    local level_value = local_player.Level
+    if level_value then
+        results.Level = level_value.Value or 0
+    end
+
+    local label = player_gui:WaitForChild("ReactGameTopGameDisplay").Frame.wave.container.value
+    local wave_num = label.Text:match("^(%d+)")
+
+    if wave_num then
+        results.Wave = tonumber(wave_num) or 0
+    end
+
+    local section_rewards = rewards_screen and rewards_screen:FindFirstChild("RewardsSection")
+    if section_rewards then
+        for _, item in ipairs(section_rewards:GetChildren()) do
+            if tonumber(item.Name) then 
+                local icon_id = "0"
+                local img = item:FindFirstChildWhichIsA("ImageLabel", true)
+                if img then icon_id = img.Image:match("%d+") or "0" end
+
+                for _, child in ipairs(item:GetDescendants()) do
                     if child:IsA("TextLabel") then
-                        child:Destroy()
-                    end;
-                end;
-            end;
-        end;
-		return main;
-	end;
-	return uitab;
-end;
-return Update;
+                        local text = child.Text
+                        local amt = tonumber(text:match("(%d+)")) or 0
+                        
+                        if text:find("Coins") then
+                            results.Coins = amt
+                        elseif text:find("Gems") then
+                            results.Gems = amt
+                        elseif text:find("XP") then
+                            results.XP = amt
+                        elseif text:lower():find("x%d+") then 
+                            local displayName = ItemNames[icon_id] or "Unknown Item (" .. icon_id .. ")"
+                            table.insert(results.Others, {Amount = text:match("x%d+"), Name = displayName})
+                        end
+                    end
+                end
+            end
+        end
+    end
+    
+    return results
+end
+
+-- // lobby / teleporting
+local function send_to_lobby()
+    task.wait(1)
+    local lobby_remote = game.ReplicatedStorage.Network.Teleport["RE:backToLobby"]
+    lobby_remote:FireServer()
+end
+
+local function handle_post_match()
+    local ui_root
+    repeat
+        task.wait(1)
+
+        local root = player_gui:FindFirstChild("ReactGameNewRewards")
+        local frame = root and root:FindFirstChild("Frame")
+        local gameOver = frame and frame:FindFirstChild("gameOver")
+        local rewards_screen = gameOver and gameOver:FindFirstChild("RewardsScreen")
+        ui_root = rewards_screen and rewards_screen:FindFirstChild("RewardsSection")
+    until ui_root
+
+    if not ui_root then return send_to_lobby() end
+    if not _G.AutoRejoin then return end
+
+    if not _G.SendWebhook then
+        send_to_lobby()
+        return
+    end
+
+    local match = get_all_rewards()
+
+    current_total_coins += match.Coins
+    current_total_gems += match.Gems
+
+    local bonus_string = ""
+    if #match.Others > 0 then
+        for _, res in ipairs(match.Others) do
+            bonus_string = bonus_string .. "🎁 **" .. res.Amount .. " " .. res.Name .. "**\n"
+        end
+    else
+        bonus_string = "_No bonus rewards found._"
+    end
+
+    local post_data = {
+        username = "TDS AutoStrat",
+        embeds = {{
+            title = (match.Status == "WIN" and "🏆 TRIUMPH" or "💀 DEFEAT"),
+            color = (match.Status == "WIN" and 0x2ecc71 or 0xe74c3c),
+            description =
+                "### 📋 Match Overview\n" ..
+                "> **Status:** `" .. match.Status .. "`\n" ..
+                "> **Time:** `" .. match.Time .. "`\n" ..
+                "> **Current Level:** `" .. match.Level .. "`\n" ..
+                "> **Wave:** `" .. match.Wave .. "`\n",
+                
+            fields = {
+                {
+                    name = "✨ Rewards",
+                    value = "```ansi\n" ..
+                            "[2;33mCoins:[0m +" .. match.Coins .. "\n" ..
+                            "[2;34mGems: [0m +" .. match.Gems .. "\n" ..
+                            "[2;32mXP:   [0m +" .. match.XP .. "```",
+                    inline = false
+                },
+                {
+                    name = "🎁 Bonus Items",
+                    value = bonus_string,
+                    inline = true
+                },
+                {
+                    name = "📊 Session Totals",
+                    value = "```py\n# Total Amount\nCoins: " .. current_total_coins .. "\nGems:  " .. current_total_gems .. "```",
+                    inline = true
+                }
+            },
+            footer = { text = "Logged for " .. local_player.Name .. " • TDS AutoStrat" },
+            timestamp = DateTime.now():ToIsoDate()
+        }}
+    }
+
+    pcall(function()
+        send_request({
+            Url = _G.WebhookURL,
+            Method = "POST",
+            Headers = { ["Content-Type"] = "application/json" },
+            Body = game:GetService("HttpService"):JSONEncode(post_data)
+        })
+    end)
+
+    task.wait(1.5)
+
+    send_to_lobby()
+end
+
+-- // voting & map selection
+local function run_vote_skip()
+    while true do
+        local success = pcall(function()
+            remote_func:InvokeServer("Voting", "Skip")
+        end)
+        if success then break end
+        task.wait(0.2)
+    end
+end
+
+local function match_ready_up()
+    local player_gui = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+    
+    local ui_overrides = player_gui:WaitForChild("ReactOverridesVote", 30)
+    local main_frame = ui_overrides and ui_overrides:WaitForChild("Frame", 30)
+    
+    if not main_frame then
+        return
+    end
+
+    local vote_ready = nil
+
+    while not vote_ready do
+        local vote_node = main_frame:FindFirstChild("votes")
+        
+        if vote_node then
+            local container = vote_node:FindFirstChild("container")
+            if container then
+                local ready = container:FindFirstChild("ready")
+                if ready then
+                    vote_ready = ready
+                end
+            end
+        end
+        
+        if not vote_ready then
+            task.wait(0.5) 
+        end
+    end
+
+    repeat task.wait(0.1) until vote_ready.Visible == true
+
+    run_vote_skip()
+end
+
+local function cast_map_vote(map_id, pos_vec)
+    local target_map = map_id or "Simplicity"
+    local target_pos = pos_vec or Vector3.new(0,0,0)
+    remote_event:FireServer("LobbyVoting", "Vote", target_map, target_pos)
+    Logger:Log("Cast map vote: " .. target_map)
+end
+
+local function lobby_ready_up()
+    pcall(function()
+        remote_event:FireServer("LobbyVoting", "Ready")
+        Logger:Log("Lobby ready up sent")
+    end)
+end
+
+local function select_map_override(map_id, ...)
+    local args = {...}
+
+    if args[#args] == "vip" then
+        remote_func:InvokeServer("LobbyVoting", "Override", map_id)
+    end
+
+    task.wait(3)
+    cast_map_vote(map_id, Vector3.new(12.59, 10.64, 52.01))
+    task.wait(1)
+    lobby_ready_up()
+    match_ready_up()
+end
+
+local function cast_modifier_vote(mods_table)
+    local bulk_modifiers = replicated_storage:WaitForChild("Network"):WaitForChild("Modifiers"):WaitForChild("RF:BulkVoteModifiers")
+    local selected_mods = mods_table or {
+        HiddenEnemies = true, Glass = true, ExplodingEnemies = true,
+        Limitation = true, Committed = true, HealthyEnemies = true,
+        SpeedyEnemies = true, Quarantine = true, Fog = true,
+        FlyingEnemies = true, Broke = true, Jailed = true, Inflation = true
+    }
+
+    pcall(function()
+        bulk_modifiers:InvokeServer(selected_mods)
+    end)
+end
+
+local function is_map_available(name)
+    for _, g in ipairs(workspace:GetDescendants()) do
+        if g:IsA("SurfaceGui") and g.Name == "MapDisplay" then
+            local t = g:FindFirstChild("Title")
+            if t and t.Text == name then return true end
+        end
+    end
+
+    repeat
+        remote_event:FireServer("LobbyVoting", "Veto")
+        wait(1)
+
+        local found = false
+        for _, g in ipairs(workspace:GetDescendants()) do
+            if g:IsA("SurfaceGui") and g.Name == "MapDisplay" then
+                local t = g:FindFirstChild("Title")
+                if t and t.Text == name then
+                    found = true
+                    break
+                end
+            end
+        end
+
+        local total_player = #players_service:GetChildren()
+        local veto_text = player_gui:WaitForChild("ReactGameIntermission"):WaitForChild("Frame"):WaitForChild("buttons"):WaitForChild("veto"):WaitForChild("value").Text
+        
+    until found or veto_text == "Veto ("..total_player.."/"..total_player..")"
+
+    for _, g in ipairs(workspace:GetDescendants()) do
+        if g:IsA("SurfaceGui") and g.Name == "MapDisplay" then
+            local t = g:FindFirstChild("Title")
+            if t and t.Text == name then return true end
+        end
+    end
+
+    return false
+end
+
+-- // timescale logic
+local function set_game_timescale(target_val)
+    if game_state ~= "GAME" then 
+        return false 
+    end
+
+    local speed_list = {0, 0.5, 1, 1.5, 2}
+
+    local target_idx
+    for i, v in ipairs(speed_list) do
+        if v == target_val then
+            target_idx = i
+            break
+        end
+    end
+    if not target_idx then return end
+
+    local speed_label = game.Players.LocalPlayer.PlayerGui.ReactUniversalHotbar.Frame.timescale.Speed
+
+    local current_val = tonumber(speed_label.Text:match("x([%d%.]+)"))
+    if not current_val then return end
+
+    local current_idx
+    for i, v in ipairs(speed_list) do
+        if v == current_val then
+            current_idx = i
+            break
+        end
+    end
+    if not current_idx then return end
+
+    local diff = target_idx - current_idx
+    if diff < 0 then
+        diff = #speed_list + diff
+    end
+
+    for _ = 1, diff do
+        replicated_storage.RemoteFunction:InvokeServer(
+            "TicketsManager",
+            "CycleTimeScale"
+        )
+        task.wait(0.5)
+    end
+end
+
+local function unlock_speed_tickets()
+    if game_state ~= "GAME" then 
+        return false 
+    end
+
+    if local_player.TimescaleTickets.Value >= 1 then
+        if game.Players.LocalPlayer.PlayerGui.ReactUniversalHotbar.Frame.timescale.Lock.Visible then
+            replicated_storage.RemoteFunction:InvokeServer('TicketsManager', 'UnlockTimeScale')
+            Logger:Log("Unlocked timescale tickets")
+        end
+    else
+        Logger:Log("No timescale tickets left")
+    end
+end
+
+-- // ingame control
+local function trigger_restart()
+    local ui_root = player_gui:WaitForChild("ReactGameNewRewards")
+    local found_section = false
+
+    repeat
+        task.wait(0.3)
+        local f = ui_root:FindFirstChild("Frame")
+        local g = f and f:FindFirstChild("gameOver")
+        local s = g and g:FindFirstChild("RewardsScreen")
+        if s and s:FindFirstChild("RewardsSection") then
+            found_section = true
+        end
+    until found_section
+
+    task.wait(3)
+    run_vote_skip()
+end
+
+local function get_current_wave()
+    local label
+
+    repeat
+        task.wait(0.5)
+        label = player_gui:FindFirstChild("ReactGameTopGameDisplay", true) 
+            and player_gui.ReactGameTopGameDisplay.Frame.wave.container:FindFirstChild("value")
+    until label ~= nil
+
+    local text = label.Text
+    local wave_num = text:match("(%d+)")
+
+    return tonumber(wave_num) or 0
+end
+
+local function do_place_tower(t_name, t_pos)
+    Logger:Log("Placing tower: " .. t_name)
+    while true do
+        local ok, res = pcall(function()
+            return remote_func:InvokeServer("Troops", "Pl\208\176ce", {
+                Rotation = CFrame.new(),
+                Position = t_pos
+            }, t_name)
+        end)
+
+        if ok and check_res_ok(res) then return true end
+        task.wait(0.25)
+    end
+end
+
+local function do_upgrade_tower(t_obj, path_id)
+    while true do
+        local ok, res = pcall(function()
+            return remote_func:InvokeServer("Troops", "Upgrade", "Set", {
+                Troop = t_obj,
+                Path = path_id
+            })
+        end)
+        if ok and check_res_ok(res) then return true end
+        task.wait(0.25)
+    end
+end
+
+local function do_sell_tower(t_obj)
+    while true do
+        local ok, res = pcall(function()
+            return remote_func:InvokeServer("Troops", "Sell", { Troop = t_obj })
+        end)
+        if ok and check_res_ok(res) then return true end
+        task.wait(0.25)
+    end
+end
+
+local function do_set_option(t_obj, opt_name, opt_val, req_wave)
+    if req_wave then
+        repeat task.wait(0.3) until get_current_wave() >= req_wave
+    end
+
+    while true do
+        local ok, res = pcall(function()
+            return remote_func:InvokeServer("Troops", "Option", "Set", {
+                Troop = t_obj,
+                Name = opt_name,
+                Value = opt_val
+            })
+        end)
+        if ok and check_res_ok(res) then return true end
+        task.wait(0.25)
+    end
+end
+
+local function do_activate_ability(t_obj, ab_name, ab_data, is_looping)
+    if type(ab_data) == "boolean" then
+        is_looping = ab_data
+        ab_data = nil
+    end
+
+    ab_data = type(ab_data) == "table" and ab_data or nil
+
+    local positions
+    if ab_data and type(ab_data.towerPosition) == "table" then
+        positions = ab_data.towerPosition
+    end
+
+    local clone_idx = ab_data and ab_data.towerToClone
+    local target_idx = ab_data and ab_data.towerTarget
+
+    local function attempt()
+        while true do
+            local ok, res = pcall(function()
+                local data
+
+                if ab_data then
+                    data = table.clone(ab_data)
+
+                    if positions and #positions > 0 then
+                        data.towerPosition = positions[math.random(#positions)]
+                    end
+
+                    if type(clone_idx) == "number" then
+                        data.towerToClone = TDS.placed_towers[clone_idx]
+                    end
+
+                    if type(target_idx) == "number" then
+                        data.towerTarget = TDS.placed_towers[target_idx]
+                    end
+                end
+
+                return remote_func:InvokeServer(
+                    "Troops",
+                    "Abilities",
+                    "Activate",
+                    {
+                        Troop = t_obj,
+                        Name = ab_name,
+                        Data = data
+                    }
+                )
+            end)
+
+            if ok and check_res_ok(res) then
+                return true
+            end
+
+            task.wait(0.25)
+        end
+    end
+
+    if is_looping then
+        local active = true
+        task.spawn(function()
+            while active do
+                attempt()
+                task.wait(1)
+            end
+        end)
+        return function() active = false end
+    end
+
+    return attempt()
+end
+
+-- // public api
+-- lobby
+function TDS:Mode(difficulty)
+    if game_state ~= "LOBBY" then 
+        return false 
+    end
+
+    local lobby_hud = player_gui:WaitForChild("ReactLobbyHud", 30)
+    local frame = lobby_hud and lobby_hud:WaitForChild("Frame", 30)
+    local match_making = frame and frame:WaitForChild("matchmaking", 30)
+
+    if match_making then
+    local remote = game:GetService("ReplicatedStorage"):WaitForChild("RemoteFunction")
+    local success = false
+    local res
+        repeat
+            local ok, result = pcall(function()
+                local mode = TDS.matchmaking_map[difficulty]
+
+                local payload
+
+                if mode then
+                    payload = {
+                        mode = mode,
+                        count = 1
+                    }
+                else
+                    payload = {
+                        difficulty = difficulty,
+                        mode = "survival",
+                        count = 1
+                    }
+                end
+
+                return remote:InvokeServer("Multiplayer", "v2:start", payload)
+            end)
+
+            if ok and check_res_ok(result) then
+                success = true
+                res = result
+            else
+                task.wait(0.5) 
+            end
+        until success
+    end
+
+    return true
+end
+
+function TDS:Loadout(...)
+    if game_state ~= "LOBBY" then
+        return
+    end
+
+    local lobby_hud = player_gui:WaitForChild("ReactLobbyHud", 30)
+    local frame = lobby_hud:WaitForChild("Frame", 30)
+    frame:WaitForChild("matchmaking", 30)
+
+    local towers = {...}
+    local remote = game:GetService("ReplicatedStorage"):WaitForChild("RemoteFunction")
+    local state_replicators = replicated_storage:FindFirstChild("StateReplicators")
+    
+    local currently_equipped = {}
+
+    if state_replicators then
+        for _, folder in ipairs(state_replicators:GetChildren()) do
+            if folder.Name == "PlayerReplicator" and folder:GetAttribute("UserId") == local_player.UserId then
+                local equipped_attr = folder:GetAttribute("EquippedTowers")
+                if type(equipped_attr) == "string" then
+                    local cleaned_json = equipped_attr:match("%[.*%]") 
+                    local decode_success, decoded = pcall(function()
+                        return http_service:JSONDecode(cleaned_json)
+                    end)
+
+                    if decode_success and type(decoded) == "table" then
+                        currently_equipped = decoded
+                    end
+                end
+            end
+        end
+    end
+
+    for _, current_tower in ipairs(currently_equipped) do
+        if current_tower ~= "None" then
+            local unequip_done = false
+            repeat
+                local ok = pcall(function()
+                    remote:InvokeServer("Inventory", "Unequip", "tower", current_tower)
+                    task.wait(0.3)
+                end)
+                if ok then unequip_done = true else task.wait(0.2) end
+            until unequip_done
+        end
+    end
+
+    task.wait(0.5)
+
+    for _, tower_name in ipairs(towers) do
+        if tower_name and tower_name ~= "" then
+            local equip_success = false
+            repeat
+                local ok = pcall(function()
+                    remote:InvokeServer("Inventory", "Equip", "tower", tower_name)
+                    Logger:Log("Equipped tower: " .. tower_name)
+                    task.wait(0.3)
+                end)
+                if ok then equip_success = true else task.wait(0.2) end
+            until equip_success
+        end
+    end
+
+    task.wait(0.5)
+    return true
+end
+
+-- ingame
+function TDS:VoteSkip(start_wave, end_wave)
+    task.spawn(function()
+        local current_wave = get_current_wave()
+        start_wave = start_wave or (current_wave > 0 and current_wave or 1)
+        end_wave = end_wave or start_wave
+
+        for wave = start_wave, end_wave do
+            while get_current_wave() < wave do
+                task.wait(1)
+            end
+
+            local skip_done = false
+            while not skip_done do
+                local vote_ui = player_gui:FindFirstChild("ReactOverridesVote")
+                local vote_button = vote_ui 
+                    and vote_ui:FindFirstChild("Frame") 
+                    and vote_ui.Frame:FindFirstChild("votes") 
+                    and vote_ui.Frame.votes:FindFirstChild("vote", true)
+
+                if vote_button and vote_button.Position == UDim2.new(0.5, 0, 0.5, 0) then
+                    run_vote_skip()
+                    skip_done = true
+                    Logger:Log("Voted to skip wave " .. wave)
+                else
+                    if get_current_wave() > wave then
+                        break 
+                    end
+                    task.wait(0.5)
+                end
+            end
+        end
+    end)
+end
+
+function TDS:GameInfo(name, list)
+    list = list or {}
+    if game_state ~= "GAME" then return false end
+
+    local vote_gui = player_gui:WaitForChild("ReactGameIntermission", 30)
+    if not (vote_gui and vote_gui.Enabled and vote_gui:WaitForChild("Frame", 5)) then return end
+
+    cast_modifier_vote(list)
+
+    if marketplace_service:UserOwnsGamePassAsync(local_player.UserId, 10518590) then
+        select_map_override(name, "vip")
+        Logger:Log("Selected map: " .. name)
+        repeat task.wait(1) until player_gui:FindFirstChild("ReactUniversalHotbar") -- waits for the game to load
+        return true 
+    elseif is_map_available(name) then
+        select_map_override(name)
+        repeat task.wait(1) until player_gui:FindFirstChild("ReactUniversalHotbar") -- waits for the game to load again
+        return true
+    else
+        Logger:Log("Map '" .. name .. "' not available, rejoining...") -- Logger
+        teleport_service:Teleport(3260590327, local_player)
+        repeat task.wait(9999) until false -- waits until 2050 instead of wasting timescale tickets/phantom placing/upgrading/selling towers
+    end
+end
+
+function TDS:UnlockTimeScale()
+    unlock_speed_tickets()
+end
+
+function TDS:TimeScale(val)
+    set_game_timescale(val)
+end
+
+function TDS:StartGame()
+    lobby_ready_up()
+end
+
+function TDS:Ready()
+    if game_state ~= "GAME" then
+        return false 
+    end
+    match_ready_up()
+end
+
+function TDS:GetWave()
+    return get_current_wave()
+end
+
+function TDS:RestartGame()
+    trigger_restart()
+end
+
+function TDS:Place(t_name, px, py, pz, ...)
+    local args = {...}
+    local stack = false
+
+    if args[#args] == "stack" or args[#args] == true then
+        py = py+20
+    end
+    if game_state ~= "GAME" then
+        return false 
+    end
+    
+    local existing = {}
+    for _, child in ipairs(workspace.Towers:GetChildren()) do
+        for _, sub_child in ipairs(child:GetChildren()) do
+            if sub_child.Name == "Owner" and sub_child.Value == local_player.UserId then
+                existing[child] = true
+                break
+            end
+        end
+    end
+
+    do_place_tower(t_name, Vector3.new(px, py, pz))
+
+    local new_t
+    repeat
+        for _, child in ipairs(workspace.Towers:GetChildren()) do
+            if not existing[child] then
+                for _, sub_child in ipairs(child:GetChildren()) do
+                    if sub_child.Name == "Owner" and sub_child.Value == local_player.UserId then
+                        new_t = child
+                        break
+                    end
+                end
+            end
+            if new_t then break end
+        end
+        task.wait(0.05)
+    until new_t
+
+    table.insert(self.placed_towers, new_t)
+    return #self.placed_towers
+end
+
+function TDS:Upgrade(idx, p_id)
+    local t = self.placed_towers[idx]
+    if t then
+        do_upgrade_tower(t, p_id or 1)
+        Logger:Log("Upgrading tower index: " .. idx)
+        upgrade_history[idx] = (upgrade_history[idx] or 0) + 1
+    end
+end
+
+function TDS:SetTarget(idx, target_type, req_wave)
+    if req_wave then
+        repeat task.wait(0.5) until get_current_wave() >= req_wave
+    end
+
+    local t = self.placed_towers[idx]
+    if not t then return end
+
+    pcall(function()
+        remote_func:InvokeServer("Troops", "Target", "Set", {
+            Troop = t,
+            Target = target_type
+        })
+        Logger:Log("Set target for tower index " .. idx .. " to " .. target_type)
+    end)
+end
+
+function TDS:Sell(idx, req_wave)
+    if req_wave then
+        repeat task.wait(0.5) until get_current_wave() >= req_wave
+    end
+    local t = self.placed_towers[idx]
+    if t and do_sell_tower(t) then
+        return true
+    end
+    return false
+end
+
+function TDS:SellAll(req_wave)
+    task.spawn(function()
+        if req_wave then
+            repeat task.wait(0.5) until get_current_wave() >= req_wave
+        end
+
+        local towers_copy = {unpack(self.placed_towers)}
+        for idx, t in ipairs(towers_copy) do
+            if do_sell_tower(t) then
+                for i, orig_t in ipairs(self.placed_towers) do
+                    if orig_t == t then
+                        table.remove(self.placed_towers, i)
+                        break
+                    end
+                end
+            end
+        end
+
+        return true
+    end)
+end
+
+function TDS:Ability(idx, name, data, loop)
+    local t = self.placed_towers[idx]
+    if not t then return false end
+    Logger:Log("Activating ability '" .. name .. "' for tower index: " .. idx)
+    return do_activate_ability(t, name, data, loop)
+end
+
+function TDS:AutoChain(...)
+    local tower_indices = {...}
+    if #tower_indices == 0 then return end
+
+    local running = true
+
+    task.spawn(function()
+        local i = 1
+        while running do
+            local idx = tower_indices[i]
+            local tower = TDS.placed_towers[idx]
+
+            if tower then
+                do_activate_ability(tower, "Call Of Arms")
+            end
+
+            local hotbar = player_gui.ReactUniversalHotbar.Frame
+            local timescale = hotbar:FindFirstChild("timescale")
+
+            if timescale then
+                if timescale:FindFirstChild("Lock") then
+                    task.wait(10.5)
+                else
+                    task.wait(5.5)
+                end
+            else
+                task.wait(10.5)
+            end
+
+            i += 1
+            if i > #tower_indices then
+                i = 1
+            end
+        end
+    end)
+
+    return function()
+        running = false
+    end
+end
+
+function TDS:SetOption(idx, name, val, req_wave)
+    local t = self.placed_towers[idx]
+    if t then
+        Logger:Log("Setting option '" .. name .. "' for tower index: " .. idx)
+        return do_set_option(t, name, val, req_wave)
+    end
+    return false
+end
+
+-- // misc utility
+local function is_void_charm(obj)
+    return math.abs(obj.Position.Y) > 999999
+end
+
+local function get_root()
+    local char = local_player.Character
+    return char and char:FindFirstChild("HumanoidRootPart")
+end
+
+local function start_auto_pickups()
+    if auto_pickups_running or not _G.AutoPickups then return end
+    auto_pickups_running = true
+
+    task.spawn(function()
+        while _G.AutoPickups do
+            local folder = workspace:FindFirstChild("Pickups")
+            local hrp = get_root()
+
+            if folder and hrp then
+                for _, item in ipairs(folder:GetChildren()) do
+                    if not _G.AutoPickups then break end
+
+                    if item:IsA("MeshPart") and (item.Name == "SnowCharm" or item.Name == "Lorebook") then
+                        if not is_void_charm(item) then
+                            local old_pos = hrp.CFrame
+                            hrp.CFrame = item.CFrame * CFrame.new(0, 3, 0)
+                            task.wait(0.2)
+                            hrp.CFrame = old_pos
+                            task.wait(0.3)
+                        end
+                    end
+                end
+            end
+
+            task.wait(1)
+        end
+
+        auto_pickups_running = false
+    end)
+end
+
+local function start_auto_skip()
+    if auto_skip_running or not _G.AutoSkip then return end
+    auto_skip_running = true
+
+    task.spawn(function()
+        while _G.AutoSkip do
+            local skip_visible =
+                player_gui:FindFirstChild("ReactOverridesVote")
+                and player_gui.ReactOverridesVote:FindFirstChild("Frame")
+                and player_gui.ReactOverridesVote.Frame:FindFirstChild("votes")
+                and player_gui.ReactOverridesVote.Frame.votes:FindFirstChild("vote")
+
+            if skip_visible and skip_visible.Position == UDim2.new(0.5, 0, 0.5, 0) then
+                run_vote_skip()
+            end
+
+            task.wait(1)
+        end
+
+        auto_skip_running = false
+    end)
+end
+
+local function start_claim_rewards()
+    if auto_claim_rewards or not _G.ClaimRewards or game_state ~= "LOBBY" then 
+        return 
+    end
+    
+    auto_claim_rewards = true
+
+    local player = game:GetService("Players").LocalPlayer
+    local network = game:GetService("ReplicatedStorage"):WaitForChild("Network")
+        
+    local spin_tickets = player:WaitForChild("SpinTickets", 15)
+    
+    if spin_tickets and spin_tickets.Value > 0 then
+        local ticket_count = spin_tickets.Value
+        
+        local daily_spin = network:WaitForChild("DailySpin", 5)
+        local redeem_remote = daily_spin and daily_spin:WaitForChild("RF:RedeemSpin", 5)
+    
+        if redeem_remote then
+            for i = 1, ticket_count do
+                redeem_remote:InvokeServer()
+                task.wait(0.5)
+            end
+        end
+    end
+
+    for i = 1, 6 do
+        local args = { i }
+        network:WaitForChild("PlaytimeRewards"):WaitForChild("RF:ClaimReward"):InvokeServer(unpack(args))
+        task.wait(0.5)
+    end
+    
+    game:GetService("ReplicatedStorage").Network.DailySpin["RF:RedeemReward"]:InvokeServer()
+    auto_claim_rewards = false
+end
+
+local function start_back_to_lobby()
+    if back_to_lobby_running then return end
+    back_to_lobby_running = true
+
+    task.spawn(function()
+        while true do
+            pcall(function()
+                handle_post_match()
+            end)
+            task.wait(5)
+        end
+        back_to_lobby_running = false
+    end)
+end
+
+local function start_anti_lag()
+    if anti_lag_running then return end
+    anti_lag_running = true
+
+    local settings = settings().Rendering
+    local original_quality = settings.QualityLevel
+    settings.QualityLevel = Enum.QualityLevel.Level01
+
+    task.spawn(function()
+        while _G.AntiLag do
+            local towers_folder = workspace:FindFirstChild("Towers")
+            local client_units = workspace:FindFirstChild("ClientUnits")
+            local enemies = workspace:FindFirstChild("NPCs")
+
+            if towers_folder then
+                for _, tower in ipairs(towers_folder:GetChildren()) do
+                    local anims = tower:FindFirstChild("Animations")
+                    local weapon = tower:FindFirstChild("Weapon")
+                    local projectiles = tower:FindFirstChild("Projectiles")
+                    
+                    if anims then anims:Destroy() end
+                    if projectiles then projectiles:Destroy() end
+                    if weapon then weapon:Destroy() end
+                end
+            end
+            if client_units then
+                for _, unit in ipairs(client_units:GetChildren()) do
+                    unit:Destroy()
+                end
+            end
+            if enemies then
+                for _, npc in ipairs(enemies:GetChildren()) do
+                    npc:Destroy()
+                end
+            end
+            task.wait(0.5)
+        end
+        anti_lag_running = false
+    end)
+end
+
+local function start_anti_afk()
+    task.spawn(function()
+        local lobby_timer = 0
+        while game_state == "LOBBY" do 
+            task.wait(1)
+            lobby_timer = lobby_timer + 1
+            if lobby_timer >= 600 then
+                teleport_service:Teleport(3260590327)
+                break 
+            end
+        end
+    end)
+end
+
+local function start_auto_chain()
+    if auto_chain_running or not _G.AutoChain then return end
+    auto_chain_running = true
+
+    task.spawn(function()
+        local idx = 1
+
+        while _G.AutoChain do
+            local commander = {}
+            local towers_folder = workspace:FindFirstChild("Towers")
+
+            if towers_folder then
+                for _, towers in ipairs(towers_folder:GetDescendants()) do
+                    if towers:IsA("Folder") and towers.Name == "TowerReplicator"
+                    and towers:GetAttribute("Name") == "Commander"
+                    and towers:GetAttribute("OwnerId") == game.Players.LocalPlayer.UserId
+                    and (towers:GetAttribute("Upgrade") or 0) >= 2 then
+                        commander[#commander + 1] = towers.Parent
+                    end
+                end
+            end
+
+            if #commander >= 3 then
+                if idx > #commander then idx = 1 end
+
+                local current_commander = commander[idx]
+                local replicator = current_commander:FindFirstChild("TowerReplicator")
+                local upgrade_level = replicator and replicator:GetAttribute("Upgrade") or 0
+
+                if upgrade_level >= 4 then
+                    remote_func:InvokeServer(
+                        "Troops",
+                        "Abilities",
+                        "Activate",
+                        { Troop = current_commander, Name = "Support Caravan", Data = {} }
+                    )
+                    task.wait(0.1) 
+                end
+
+                local response = remote_func:InvokeServer(
+                    "Troops",
+                    "Abilities",
+                    "Activate",
+                    { Troop = current_commander, Name = "Call Of Arms", Data = {} }
+                )
+
+                if response then
+                    idx += 1
+
+                    local hotbar = player_gui:FindFirstChild("ReactUniversalHotbar")
+                    local timescale_frame = hotbar and hotbar.Frame:FindFirstChild("timescale")
+                    
+                    if timescale_frame and timescale_frame.Visible then
+                        if timescale_frame:FindFirstChild("Lock") then
+                            task.wait(10.3)
+                        else
+                            task.wait(5.25)
+                        end
+                    else
+                        task.wait(10.3)
+                    end
+                else
+                    task.wait(0.5)
+                end
+            else
+                task.wait(1)
+            end
+        end
+
+        auto_chain_running = false
+    end)
+end
+
+local function start_auto_dj_booth()
+    if auto_dj_running or not _G.AutoDJ then return end
+    auto_dj_running = true
+
+    task.spawn(function()
+        while _G.AutoDJ do
+            local towers_folder = workspace:FindFirstChild("Towers")
+
+            if towers_folder then
+                for _, towers in ipairs(towers_folder:GetDescendants()) do
+                    if towers:IsA("Folder") and towers.Name == "TowerReplicator"
+                    and towers:GetAttribute("Name") == "DJ Booth"
+                    and towers:GetAttribute("OwnerId") == game.Players.LocalPlayer.UserId
+                    and (towers:GetAttribute("Upgrade") or 0) >= 3 then
+                        DJ = towers.Parent
+                    end
+                end
+            end
+
+            if DJ then
+                remote_func:InvokeServer(
+                    "Troops",
+                    "Abilities",
+                    "Activate",
+                    { Troop = DJ, Name = "Drop The Beat", Data = {} }
+                )
+            end
+
+            task.wait(1)
+        end
+
+        auto_dj_running = false
+    end)
+end
+
+local function start_auto_mercenary()
+    if not _G.AutoMercenary and not _G.AutoMilitary then return end
+        
+    if auto_mercenary_base_running then return end
+    auto_mercenary_base_running = true
+
+    task.spawn(function()
+        while _G.AutoMercenary do
+            local towers_folder = workspace:FindFirstChild("Towers")
+
+            if towers_folder then
+                for _, towers in ipairs(towers_folder:GetDescendants()) do
+                    if towers:IsA("Folder") and towers.Name == "TowerReplicator"
+                    and towers:GetAttribute("Name") == "Mercenary Base"
+                    and towers:GetAttribute("OwnerId") == game.Players.LocalPlayer.UserId
+                    and (towers:GetAttribute("Upgrade") or 0) >= 5 then
+                        
+                        remote_func:InvokeServer(
+                            "Troops",
+                            "Abilities",
+                            "Activate",
+                            { 
+                                Troop = towers.Parent, 
+                                Name = "Air-Drop", 
+                                Data = {
+                                    pathName = 1, 
+                                    directionCFrame = CFrame.new(), 
+                                    dist = _G.MercenaryPath or 195
+                                } 
+                            }
+                        )
+
+                        task.wait(0.5)
+                        
+                        if not _G.AutoMercenary then break end
+                    end
+                end
+            end
+
+            task.wait(0.5)
+        end
+
+        auto_mercenary_base_running = false
+    end)
+end
+
+local function start_auto_military()
+    if not _G.AutoMilitary then return end
+        
+    if auto_military_base_running then return end
+    auto_military_base_running = true
+
+    task.spawn(function()
+        while _G.AutoMilitary do
+            local towers_folder = workspace:FindFirstChild("Towers")
+            if towers_folder then
+                for _, towers in ipairs(towers_folder:GetDescendants()) do
+                    if towers:IsA("Folder") and towers.Name == "TowerReplicator"
+                    and towers:GetAttribute("Name") == "Military Base"
+                    and towers:GetAttribute("OwnerId") == game.Players.LocalPlayer.UserId
+                    and (towers:GetAttribute("Upgrade") or 0) >= 4 then
+                        
+                        remote_func:InvokeServer(
+                            "Troops",
+                            "Abilities",
+                            "Activate",
+                            { 
+                                Troop = towers.Parent, 
+                                Name = "Airstrike", 
+                                Data = {
+                                    pathName = 1, 
+                                    pointToEnd = CFrame.new(), 
+                                    dist = _G.MilitaryPath or 195
+                                } 
+                            }
+                        )
+
+                        task.wait(0.5)
+                        
+                        if not _G.AutoMilitary then break end
+                    end
+                end
+            end
+
+            task.wait(0.5)
+        end
+        
+        auto_military_base_running = false
+    end)
+end
+
+local function start_sell_farm()
+    if sell_farms_running or not _G.SellFarms then return end
+    sell_farms_running = true
+
+    if game_state ~= "GAME" then 
+        return false 
+    end
+
+    task.spawn(function()
+        while _G.SellFarms do
+            local current_wave = get_current_wave()
+            if _G.SellFarmsWave and current_wave < _G.SellFarmsWave then
+                task.wait(1)
+                continue
+            end
+
+            local towers_folder = workspace:FindFirstChild("Towers")
+            if towers_folder then
+                for _, replicator in ipairs(towers_folder:GetDescendants()) do
+                    if replicator:IsA("Folder") and replicator.Name == "TowerReplicator" then
+                        local is_farm = replicator:GetAttribute("Name") == "Farm"
+                        local is_mine = replicator:GetAttribute("OwnerId") == game.Players.LocalPlayer.UserId
+
+                        if is_farm and is_mine then
+                            local tower_model = replicator.Parent
+                            remote_func:InvokeServer("Troops", "Sell", { Troop = tower_model })
+                            
+                            task.wait(0.2)
+                        end
+                    end
+                end
+            end
+
+            task.wait(1)
+        end
+        sell_farms_running = false
+    end)
+end
+
+task.spawn(function()
+    while true do
+        if _G.AutoPickups and not auto_pickups_running then
+            start_auto_pickups()
+        end
+        
+        if _G.AutoSkip and not auto_skip_running then
+            start_auto_skip()
+        end
+
+        if _G.AutoChain and not auto_chain_running then
+            start_auto_chain()
+        end
+
+        if _G.AutoDJ and not auto_dj_running then
+            start_auto_dj_booth()
+        end
+
+        if _G.AutoMercenary and not auto_mercenary_base_running then
+            start_auto_mercenary()
+        end
+
+        if _G.AutoMilitary and not auto_military_base_running then
+            start_auto_military()
+        end
+
+        if _G.SellFarms and not sell_farms_running then
+            start_sell_farm()
+        end
+        
+        if _G.AntiLag and not anti_lag_running then
+            start_anti_lag()
+        end
+
+        if _G.AutoRejoin and not back_to_lobby_running then
+            start_back_to_lobby()
+        end
+        
+        task.wait(1)
+    end
+end)
+
+if _G.ClaimRewards and not auto_claim_rewards then
+    start_claim_rewards()
+end
+
+start_anti_afk()
+
+return TDS
